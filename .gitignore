@@ -1,0 +1,18 @@
+#ignore BUILD folder
+BUILD/
+
+#ignore all folders
+/*
+
+#exceptions:
+
+!.gitignore
+!Readme.txt
+!CMakeLists.txt
+!Navigator
+!Navigator2
+!Tools
+!TrackerConfiguration
+!TransformReaders
+
+
