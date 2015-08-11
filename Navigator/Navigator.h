@@ -210,6 +210,9 @@ public:
                                                          ImageRepresentationTypePlus;
   typedef igstk::ImageSliceObjectRepresentation< CT_ImageSpatialObjectType >
                                                          ImageRepresentationType;
+  typedef igstk::ImageSliceObjectRepresentation< MRI_ImageSpatialObjectType >
+														 ImageRepresentationType2;
+
  // typedef vtkSmartPointer<vtkImageActor>               ImageRepresentationType;  //New add
 
   /** typedef for ImageRepresentationVolumeType */
@@ -450,6 +453,7 @@ private:
   /** image spatial object */
   CT_ImageSpatialObjectType::Pointer                       m_ImageSpatialObject;
   CT_ImageSpatialObjectType::Pointer                       m_ImageSpatialObject1; 
+  MRI_ImageSpatialObjectType::Pointer					   m_ImageSpatialObject2;   //qinshuo add: second image object
 
   /** image spatial object */
   MeshObjectType::Pointer                       meshObject;  //Sun pick
@@ -487,12 +491,11 @@ private:
   ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject;
   ReslicerPlaneType::Pointer                     m_CoronalPlaneSpatialObject;
 
-  ReslicerPlaneType::Pointer                     m_AxialPlaneSpatialObject1;
-  ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject1;
-  ReslicerPlaneType::Pointer                     m_CoronalPlaneSpatialObject1;
-
-
-
+  ReslicerPlaneType::Pointer                     m_AxialPlaneSpatialObject2;     //qinshuo add
+  ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject2;  //qinshuo add
+  ImageRepresentationType2::Pointer               new_AxialPlaneRepresentation;     //qinshuo add
+  ImageRepresentationType2::Pointer               new_SagittalPlaneRepresentation;  //qinshuo add
+  
   ImageRepresentationType::Pointer               m_AxialPlaneRepresentation;
   ImageRepresentationType::Pointer               m_SagittalPlaneRepresentation;
   ImageRepresentationType::Pointer               m_CoronalPlaneRepresentation;
