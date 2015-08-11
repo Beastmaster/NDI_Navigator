@@ -2443,7 +2443,7 @@ void Navigator::LoadSecondImageProcessing()
   m_CrossHair->RequestSetBoundingBoxProviderSpatialObject(m_ImageSpatialObject2);
 	
 	// under debug mode
-	CT_ImageSpatialObjectType::IndexType index;
+	MRI_ImageSpatialObjectType::IndexType index;
 	index[0] = xslice;
 	index[1] = yslice;
 	index[2] = zslice;
