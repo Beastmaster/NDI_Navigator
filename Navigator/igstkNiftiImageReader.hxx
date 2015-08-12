@@ -215,7 +215,6 @@ NiftiImageReader<TPixelType>::NiftiImageReader() : m_StateMachine(this)
   m_ImageIO->SetGlobalWarningDisplay(this->GetGlobalWarningDisplay());
   m_ImageFileReader = ImageReaderType::New();
   m_ImageFileReader->SetImageIO( m_ImageIO );
-
 } 
 
 /** Destructor */
@@ -327,8 +326,8 @@ void NiftiImageReader<TPixelType>::AttemptReadImageProcessing()
                  "igstk::NiftiImageReader::AttemptReadImage called...\n" );
   try
     {
-    m_ImageFileReader->UpdateLargestPossibleRegion();
-    m_ImageFileReader->Update();
+		m_ImageFileReader->UpdateLargestPossibleRegion();
+		m_ImageFileReader->Update();
     }
   catch( itk::ExceptionObject & excp )
     {
@@ -340,6 +339,61 @@ void NiftiImageReader<TPixelType>::AttemptReadImageProcessing()
     this->m_StateMachine.ProcessInputs();
     return;
     }
+
+  //cast image pixel type
+  m_Caster = ImgaeCasterType::New();
+//  m_Caster->SetInput(m_ImageFileReader->GetOutput());
+  try
+  {
+//	  m_Caster->Update();
+  }
+  catch (itk::ExceptionObject* excp)
+  {
+	  igstkLogMacro( DEBUG, 
+		  "igstk:NiftiImageReader - Failed to cast pixel type.\n" );
+	  this->m_StateMachine.PushInput( this->m_ImageReadingErrorInput );
+	  this->m_StateMachine.ProcessInputs();
+	  return;
+  }
+	
+  //resacle image
+  auto rescale_filter = 
+	  itk::RescaleIntensityImageFilter<ImageType_I,ImageType>::New();
+  rescale_filter->SetInput(m_ImageFileReader->GetOutput());
+  rescale_filter->SetOutputMinimum(0);
+  rescale_filter->SetOutputMaximum(1000);
+  try
+  {
+	  rescale_filter->Update();
+  }
+  catch (itk::ExceptionObject* excp)
+  {
+	  igstkLogMacro( DEBUG, 
+		  "igstk:NiftiImageReader - Failed to re-orient.\n" );
+	  this->m_StateMachine.PushInput( this->m_ImageReadingErrorInput );
+	  this->m_StateMachine.ProcessInputs();
+	  return;
+  }
+
+  //set orientation
+  m_orientor = itk::OrientImageFilter< ImageType,ImageType >::New();
+  m_orientor->UseImageDirectionOn();
+  m_orientor->SetDesiredCoordinateOrientation(itk::SpatialOrientation::ITK_COORDINATE_ORIENTATION_RAI);
+  m_orientor->SetInput( rescale_filter->GetOutput());
+
+  try
+  {
+	  m_orientor->Update();
+  }
+  catch (itk::ExceptionObject* excp)
+  {
+	  igstkLogMacro( DEBUG, 
+		  "igstk:NiftiImageReader - Failed to re-orient.\n" );
+	  this->m_StateMachine.PushInput( this->m_ImageReadingErrorInput );
+	  this->m_StateMachine.ProcessInputs();
+	  return;
+  }
+
 
   this->m_StateMachine.PushInput( this->m_ImageReadingSuccessInput );
   this->m_StateMachine.ProcessInputs();
@@ -399,7 +453,7 @@ template <class TPixelType>
 const typename NiftiImageReader< TPixelType >::ImageType *
 NiftiImageReader<TPixelType>::GetITKImage() const
 {
-  return m_ImageFileReader->GetOutput();
+  return m_orientor->GetOutput();
 }
 
 /** Print Self function */

@@ -28,6 +28,9 @@
 //#include "itkGDCMSeriesFileNames.h"
 #include "itkNiftiImageIO.h"
 #include "igstkImageSpatialObject.h"
+#include "itkOrientImageFilter.h"
+#include "itkCastImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
 
 namespace igstk
 {
@@ -148,14 +151,19 @@ protected:
   FileNameType                          m_FileName;
   itk::NiftiImageIO::Pointer            m_ImageIO;
 
+
   typedef typename Superclass::ImageType         ImageType;
+  typedef typename itk::Image< float, 3 >        ImageType_I;
 
   typedef itk::ImageSeriesReader< ImageType >    ImageSeriesReaderType;
-  typedef itk::ImageFileReader< ImageType >      ImageReaderType;
+  typedef itk::ImageFileReader< ImageType_I >      ImageReaderType;
+  typedef itk::CastImageFilter< ImageType_I, ImageType >  ImgaeCasterType;
 
   /** Internal itkImageSeriesReader */
   typename ImageSeriesReaderType::Pointer        m_ImageSeriesReader;
   typename ImageReaderType::Pointer              m_ImageFileReader;
+  typename itk::OrientImageFilter< ImageType,ImageType >::Pointer m_orientor;
+  typename ImgaeCasterType::Pointer				 m_Caster;
 
   /** Print the object information in a stream. */
   void PrintSelf( std::ostream& os, itk::Indent indent ) const; 
