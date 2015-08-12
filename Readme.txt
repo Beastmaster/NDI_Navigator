@@ -1,18 +1,13 @@
-"IGSTK/Examples" README
+Navigator Project
 ---------------------------
 
-Some examples mentioned in the book are still work-in-progress, those
-source code are kept in "IGSTKSandbox/Examples" for further development.
+1. Derive from "IGSTKSandbox/Examples"
 
-There are two ways to get the IGSTKSandbox:
+2. Device: NDI tracker, P6-01480
 
-1. Download the zip file from:
-
-  http://www.igstk.org/download.htm
+3. Re-implemented module: read NiFTI(.nii) file module
+   File name: igstkNiftiImageReader.h igstkNiftiImageReader.hxx
 
 
-2. CVS download:
 
-  cvs -d :pserver:anonymous@public.kitware.com:/cvsroot/IGSTK login
-  answer by 'igstk'
-  cvs -d :pserver:anonymous@public.kitware.com:/cvsroot/IGSTK co IGSTKSandbox
+
