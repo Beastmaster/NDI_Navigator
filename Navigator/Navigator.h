@@ -478,6 +478,9 @@ private:
   CrossHairRepresentationType::Pointer        m_CoronalCrossHairRepresentation;
   CrossHairRepresentationType::Pointer        m_3DViewCrossHairRepresentation;
 
+  CrossHairRepresentationType::Pointer        new_Axial_Hair_Representation;//qinshuo add
+  CrossHairRepresentationType::Pointer        new_Sagital_Hair_Representation;//qinshuo add
+
   /** a vector of mesh spatial objects */
   std::vector< MeshType::Pointer >                      m_MeshVector;
 

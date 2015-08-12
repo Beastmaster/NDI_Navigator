@@ -2378,6 +2378,8 @@ void Navigator::LoadSecondImageProcessing()
 	new_AxialPlaneRepresentation = ImageRepresentationType2::New();
 	new_AxialPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject2 );
 	new_AxialPlaneRepresentation->RequestSetReslicePlaneSpatialObject(m_AxialPlaneSpatialObject2);
+	new_AxialPlaneRepresentation->SetWindowLevel( 500, 250 );
+
 
 	new_SagittalPlaneRepresentation = ImageRepresentationType2::New();
 	new_SagittalPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject2 );
@@ -2400,7 +2402,7 @@ void Navigator::LoadSecondImageProcessing()
   
   unsigned int extentObserverID;
 
-  extentObserverID = m_ImageSpatialObject->AddObserver( 
+  extentObserverID = m_ImageSpatialObject2->AddObserver( 
                                     igstk::ImageExtentEvent(), extentObserver );
 
   m_ImageSpatialObject2->RequestGetImageExtent();
@@ -2457,12 +2459,12 @@ void Navigator::LoadSecondImageProcessing()
 
 	
 	//build the cross hair representations
-	CrossHairRepresentationType::Pointer new_Axial_Hair_Representation = CrossHairRepresentationType::New();
+	new_Axial_Hair_Representation = CrossHairRepresentationType::New();
 	new_Axial_Hair_Representation->SetColor(0,1,0);
 	new_Axial_Hair_Representation->SetLineWidth(2);
 	new_Axial_Hair_Representation->RequestSetCrossHairObject( m_CrossHair );
 
-	CrossHairRepresentationType::Pointer new_Sagital_Hair_Representation = CrossHairRepresentationType::New();
+	new_Sagital_Hair_Representation = CrossHairRepresentationType::New();
 	new_Sagital_Hair_Representation->SetColor(0,1,0);
 	new_Sagital_Hair_Representation->SetLineWidth(2);
 	new_Sagital_Hair_Representation->RequestSetCrossHairObject( m_CrossHair );
@@ -4755,13 +4757,12 @@ void Navigator::HandleKeyPressed (
         m_ViewerGroup->m_CoronalView->RequestResetCamera();
         m_ViewerGroup->m_3DView->RequestResetCamera();
 
-		m_ViewerGroup->new_AxialView->RequestResetCamera();   //qinshuo add
-		m_ViewerGroup->new_SagittalView->RequestResetCamera();// qinshuo add
-
 		m_AxialPlaneRepresentation->SetWindowLevel( 1600,200 );
 		m_SagittalPlaneRepresentation->SetWindowLevel( 1600,200 );
 		m_CoronalPlaneRepresentation->SetWindowLevel( 1600,200 );
 
+		m_ViewerGroup->new_AxialView->RequestResetCamera();   //qinshuo add
+		m_ViewerGroup->new_SagittalView->RequestResetCamera();// qinshuo add
 		m_AxialPlaneRepresentation2->SetWindowLevel( 1600,200 );
 		m_SagittalPlaneRepresentation2->SetWindowLevel( 1600,200 );
 		m_CoronalPlaneRepresentation2->SetWindowLevel( 1600,200 );
