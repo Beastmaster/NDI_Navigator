@@ -413,13 +413,14 @@ private:
   ImageReaderType::Pointer                              m_ImageReader1;
 
 
-
   /** Nifti Image reader -- qinshuo add*/
   MRImageReaderType::Pointer                             m_ImageReader2;
+  bool													State_Observer2;
   MRImageObserver::Pointer								m_ImageObserver2;
   
   /** DICOM image observers */
   ImageObserver::Pointer                                m_ImageObserver;
+  bool													State_Observer;
   ImageObserver::Pointer                                m_ImageObserver1;
   VTKImageObserver::Pointer                             m_VTKImageObserver;   //Sun adds
   vtkImageData                                          *m_ImageData;          //Sun adds

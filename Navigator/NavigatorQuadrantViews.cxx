@@ -54,8 +54,8 @@ NavigatorQuadrantViews::NavigatorQuadrantViews(int X, int Y, int W, int H, const
   m_CoronalWidget  = new WidgetType(X+C, Y+m_HH+N, m_WW, m_HH, "Display 2");
   m_3DWidget       = new WidgetType(X+m_WW+2*C, Y+m_HH+N, m_WW, m_HH, "Display 3");       
   //--------add by qinshuo--------//
-  new_SagittalWidget= new WidgetType(X+C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add0");
-  new_AxialWidget  = new WidgetType(X+m_WW+2*C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add1");
+  new_AxialWidget= new WidgetType(X+C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add0");
+  new_SagittalWidget   = new WidgetType(X+m_WW+2*C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add1");
   //--------add by qinshuo--------//
 
 

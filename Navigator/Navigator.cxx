@@ -92,6 +92,17 @@ Navigator::Navigator() : m_StateMachine(this)
   m_CoronalViewInitialized = false;
   m_ModifyImageFiducialsEnabled = false;  
 
+
+  /* --   qinshuo  add -----*/
+  State_Observer = false;
+  State_Observer2= false;
+  new_AxialPlaneRepresentation = ImageRepresentationType2::New();
+  new_SagittalPlaneRepresentation = ImageRepresentationType2::New();
+  new_Axial_Hair_Representation = CrossHairRepresentationType::New();
+  new_Sagital_Hair_Representation = CrossHairRepresentationType::New();	
+  new_Axial_Hair_Representation = CrossHairRepresentationType::New();
+  new_Sagital_Hair_Representation = CrossHairRepresentationType::New();
+
   m_TrackerRMS = 0.0;
   m_WindowWidth = 542;
   m_WindowLevel = 52;
@@ -2257,6 +2268,7 @@ void Navigator::LoadImageProcessing()
    m_ImageReader->RequestReadImage();
 
    m_ImageObserver = ImageObserver::New();
+   State_Observer  = true;
    m_ImageReader->AddObserver(ImageReaderType::ImageModifiedEvent(),
                                                     m_ImageObserver);
 
@@ -2307,6 +2319,7 @@ void Navigator::LoadSecondImageProcessing()
 	m_ImageReader2->RequestSetFileName(fileName);
 
 	m_ImageObserver2 = MRImageObserver::New();
+	State_Observer2  = true;
 	m_ImageReader2->AddObserver(MRImageReaderType::ImageModifiedEvent(),
 		m_ImageObserver2);
 
@@ -2332,240 +2345,29 @@ void Navigator::LoadSecondImageProcessing()
 	m_ImageObserver2->GetMRImage();
 	m_StateMachine.PushInput( m_SuccessInput);
 	m_StateMachine.ProcessInputs(); 
-  
 
-	//---   qinshuo add ---//
-	std::string Name = "New View";
-	m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText( 0, Name );
-	m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(0, 0.0, 0.0, 1.0);
-	m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontSize(0, 12);
+	//---qinshuo add --//
 	m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText(2,  "AXIAL");
 	m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(2, 0.0, 0.0, 1.0);
 	m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontSize(2, 12);
 
-	m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText( 0, Name );
-	m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(0, 0.0, 0.0, 1.0);
-	m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontSize(0, 12);
 	m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText(2,  "Saggittal");
 	m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(2, 0.0, 0.0, 1.0);
 	m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontSize(2, 12);
-	//----  qinshuo add ---//
+	m_ViewerGroup->RequestUpdateOverlays(); 
+
+
 
 	if ( m_ImageObserver2.IsNotNull() )
 	{
-		m_ImageSpatialObject2 = m_ImageObserver2->GetMRImage();   
+		m_ImageSpatialObject2 = m_ImageObserver2->GetMRImage();  
+
+		this->ConnectImageRepresentation();
+
+		m_StateMachine.PushInputBoolean( m_ImageReader2->FileSuccessfullyRead(), 
+			m_SuccessInput, m_FailureInput);
 	}
-
-	// create reslice plane spatial object for new axial view
-	m_AxialPlaneSpatialObject2 = ReslicerPlaneType::New();
-	m_AxialPlaneSpatialObject2->RequestSetReslicingMode( 
-		ReslicerPlaneType::Orthogonal );
-	m_AxialPlaneSpatialObject2->RequestSetOrientationType( 
-		ReslicerPlaneType::Axial );
-	m_AxialPlaneSpatialObject2->RequestSetBoundingBoxProviderSpatialObject( 
-		m_ImageSpatialObject2 );
-
-	// create reslice plane spatial object for new sagittal view
-	m_SagittalPlaneSpatialObject2 = ReslicerPlaneType::New();
-	m_SagittalPlaneSpatialObject2->RequestSetReslicingMode( 
-		ReslicerPlaneType::Orthogonal );
-	m_SagittalPlaneSpatialObject2->RequestSetOrientationType( 
-		ReslicerPlaneType::Sagittal );
-	m_SagittalPlaneSpatialObject2->RequestSetBoundingBoxProviderSpatialObject( 
-		m_ImageSpatialObject2 );
-
-	// create reslice plane representation
-	new_AxialPlaneRepresentation = ImageRepresentationType2::New();
-	new_AxialPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject2 );
-	new_AxialPlaneRepresentation->RequestSetReslicePlaneSpatialObject(m_AxialPlaneSpatialObject2);
-	new_AxialPlaneRepresentation->SetWindowLevel( 500, 250 );
-
-
-	new_SagittalPlaneRepresentation = ImageRepresentationType2::New();
-	new_SagittalPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject2 );
-	new_SagittalPlaneRepresentation->RequestSetReslicePlaneSpatialObject(m_SagittalPlaneSpatialObject2);
-
-	//create cross hair
-	m_CrossHair = CrossHairType::New();
-	m_CrossHair->RequestSetBoundingBoxProviderSpatialObject(m_ImageSpatialObject2);
-	
-	
-	// Set initial crosshair possition
-	// This initialization is important, otherwise, images will not load properly
-	  /** 
-   *  Request information about the slice bounds. The answer will be
-   *  received in the form of an event. This will be used to initialize
-   *  the reslicing sliders and set initial slice position
-   */
-
-  ImageExtentObserver::Pointer extentObserver = ImageExtentObserver::New();
-  
-  unsigned int extentObserverID;
-
-  extentObserverID = m_ImageSpatialObject2->AddObserver( 
-                                    igstk::ImageExtentEvent(), extentObserver );
-
-  m_ImageSpatialObject2->RequestGetImageExtent();
-
-  unsigned int xslice, yslice, zslice;
-  if( extentObserver->GotImageExtent() )
-  {
-    const igstk::EventHelperType::ImageExtentType& extent = 
-                                               extentObserver->GetImageExtent();
-
-    const unsigned int zmin = extent.zmin;
-    const unsigned int zmax = extent.zmax;
-    zslice = static_cast< unsigned int > ( (zmin + zmax)/2 );
-    m_ViewerGroup->m_Sliders[0]->minimum( zmin );
-    m_ViewerGroup->m_Sliders[0]->maximum( zmax );
-    m_ViewerGroup->m_Sliders[0]->value( zslice );
-    m_ViewerGroup->m_Sliders[0]->activate();
-
-    const unsigned int ymin = extent.ymin;
-    const unsigned int ymax = extent.ymax;
-    yslice = static_cast< unsigned int > ( (ymin + ymax)/2 );
-    m_ViewerGroup->m_Sliders[1]->minimum( ymin );
-    m_ViewerGroup->m_Sliders[1]->maximum( ymax );
-    m_ViewerGroup->m_Sliders[1]->value( yslice );
-    m_ViewerGroup->m_Sliders[1]->activate();
-
-    const unsigned int xmin = extent.xmin;
-    const unsigned int xmax = extent.xmax;
-    xslice = static_cast< unsigned int > ( (xmin + xmax)/2 );
-    m_ViewerGroup->m_Sliders[2]->minimum( xmin );
-    m_ViewerGroup->m_Sliders[2]->maximum( xmax );
-    m_ViewerGroup->m_Sliders[2]->value( xslice );
-    m_ViewerGroup->m_Sliders[2]->activate();
-  }
-
-  m_ImageSpatialObject2->RemoveObserver( extentObserverID );
-
-  // Set up cross hairs
-  m_CrossHair = CrossHairType::New();
-  m_CrossHair->RequestSetBoundingBoxProviderSpatialObject(m_ImageSpatialObject2);
-	
-	// under debug mode
-	MRI_ImageSpatialObjectType::IndexType index;
-	index[0] = xslice;
-	index[1] = yslice;
-	index[2] = zslice;
-
-	PointType point;
-	m_ImageSpatialObject2->TransformIndexToPhysicalPoint( index, point);
-
-	const double *data = NULL;
-	data = point.GetVnlVector().data_block();
-	m_CrossHair->RequestSetCursorPosition(data);
-
-	
-	//build the cross hair representations
-	new_Axial_Hair_Representation = CrossHairRepresentationType::New();
-	new_Axial_Hair_Representation->SetColor(0,1,0);
-	new_Axial_Hair_Representation->SetLineWidth(2);
-	new_Axial_Hair_Representation->RequestSetCrossHairObject( m_CrossHair );
-
-	new_Sagital_Hair_Representation = CrossHairRepresentationType::New();
-	new_Sagital_Hair_Representation->SetColor(0,1,0);
-	new_Sagital_Hair_Representation->SetLineWidth(2);
-	new_Sagital_Hair_Representation->RequestSetCrossHairObject( m_CrossHair );
-
-	//add cross hair objects
-	m_ViewerGroup->new_AxialView->RequestAddObject( new_Axial_Hair_Representation);
-	m_ViewerGroup->new_SagittalView->RequestAddObject( new_Sagital_Hair_Representation );
-	m_ViewerGroup->new_AxialView->SetRendererBackgroundColor(0, 0, 0);
-	m_ViewerGroup->new_SagittalView->SetRendererBackgroundColor(0, 0, 0);
-
-	  /**
-  *  Connect the scene graph
-  *  Here we create a virtual world reference system (as the root) and
-  *  attached all the objects as its children.
-  *  This is for the convenience in the following implementation. You can
-  *  use any spatial object, view, tracker, or tracker tool as a 
-  *  reference system in IGSTK. And you can create your own class to
-  *  use the coordinate system API by using this macro:
-  *     igstkCoordinateSystemClassInterfaceMacro()
-  *  Refer to:
-  *      igstkCoordinateSystemInterfaceMacros.h
-  *  Class:
-  *      igstkCoordinateSystem
-  *      igstkCoordinateSystemDelegator
-  */
-	igstk::Transform identity;
-	identity.SetToIdentity( igstk::TimeStamp::GetLongestPossibleTime() );
-	// our principal node in the scene graph: the world reference
-	m_WorldReference  = igstk::AxesObject::New();
-
-	// set transform and parent to the image spatial object
-	m_CrossHair->RequestSetTransformAndParent( identity, m_WorldReference );
-	m_ImageSpatialObject2->RequestSetTransformAndParent(identity,m_WorldReference);
-	m_AxialPlaneSpatialObject2->RequestSetTransformAndParent( identity, m_WorldReference );
-	m_SagittalPlaneSpatialObject2->RequestSetTransformAndParent( identity,m_WorldReference );
-	m_ViewerGroup->new_AxialView->RequestSetTransformAndParent( identity, m_AxialPlaneSpatialObject2 );
-	m_ViewerGroup->new_SagittalView->RequestSetTransformAndParent( identity, m_SagittalPlaneSpatialObject2 );
-	
-	m_ViewerGroup->new_AxialView->RequestAddObject(new_AxialPlaneRepresentation);
-	m_ViewerGroup->new_SagittalView->RequestAddObject(new_SagittalPlaneRepresentation);
-
-	
-	// set parallel projection in the 2D views
-	m_ViewerGroup->new_AxialView->SetCameraParallelProjection(true);
-	m_ViewerGroup->new_SagittalView->SetCameraParallelProjection(true);
-
-
-	/**  set refresh rate and add observers   **/
-	m_ViewerGroup->new_SagittalView->RequestResetCamera();
-	m_ViewerGroup->new_SagittalView->SetRefreshRate(VIEW_2D_REFRESH_RATE);
-	m_ViewerGroup->new_SagittalView->RequestStart();
-	m_ViewerGroup->new_SagittalWidget->RequestEnableInteractions();
-
-	m_ViewerGroup->new_AxialView->RequestResetCamera();
-	m_ViewerGroup->new_AxialView->SetRefreshRate(VIEW_2D_REFRESH_RATE);
-	m_ViewerGroup->new_AxialView->RequestStart();
-	m_ViewerGroup->new_AxialWidget->RequestEnableInteractions();
-
-	/** Add observer for picking events in the Axial view 
-	m_AxialViewPickerObserver = LoadedObserverType::New();
-	m_AxialViewPickerObserver->SetCallbackFunction( this, 
-		&Navigator::AxialViewPickingCallback );
-
-	m_ViewerGroup->new_AxialView->AddObserver(
-		igstk::CoordinateSystemTransformToEvent(), m_AxialViewPickerObserver );*/
-
-	/** Add observer for picking events in the Sagittal view
-	m_SagittalViewPickerObserver = LoadedObserverType::New();
-	m_SagittalViewPickerObserver->SetCallbackFunction( this, 
-		&Navigator::SagittalViewPickingCallback );
-
-	m_ViewerGroup->new_SagittalView->AddObserver(
-		igstk::CoordinateSystemTransformToEvent(), m_SagittalViewPickerObserver ); */
-
-
-	/** Add observer for slider bar reslicing event 
-	m_ManualReslicingObserver = LoadedObserverType::New();
-	m_ManualReslicingObserver->SetCallbackFunction( this,
-		&Navigator::ResliceImageCallback );
-
-	m_ViewerGroup->AddObserver( 
-		igstk::NavigatorQuadrantViews::ManualReslicingEvent(),
-		m_ManualReslicingObserver );*/
-
-	/** Add observer for key pressed event
-	m_KeyPressedObserver = LoadedObserverType::New();
-	m_KeyPressedObserver->SetCallbackFunction( this,
-		&Navigator::HandleKeyPressedCallback );
-
-	m_ViewerGroup->AddObserver( igstk::NavigatorQuadrantViews::KeyPressedEvent(),
-		m_KeyPressedObserver ); */
-
-	/** Add observer for mouse pressed event 
-	m_MousePressedObserver = LoadedObserverType::New();
-	m_MousePressedObserver->SetCallbackFunction( this,
-		&Navigator::HandleMousePressedCallback );
-
-	m_ViewerGroup->AddObserver( 
-		igstk::NavigatorQuadrantViews::MousePressedEvent(),
-		m_MousePressedObserver );*/
-
+	m_StateMachine.ProcessInputs();
 }
 
 
@@ -2658,6 +2460,7 @@ void Navigator::RequestAcceptImageLoad()
   m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(2, 0.0, 0.0, 1.0);
   m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontSize(2, 12);
 
+
   m_ViewerGroup->RequestUpdateOverlays(); //New adds
 
   if ( m_ImageObserver.IsNotNull() )
@@ -2747,21 +2550,6 @@ void Navigator::LoadToolSpatialObjectProcessing()
 void Navigator::LoadMeshProcessing()
 {
 
-/**     igstkLogMacro2( m_Logger, DEBUG, 
-                    "Navigator::LoadImageProcessing called...\n" )
-
-    const char*  directoryName = 
-        fl_dir_chooser("Set DICOM directory ", m_ImageDir.c_str());
-
-   if ( !directoryName )
-   {    
-      igstkLogMacro2( m_Logger, DEBUG, "No directory was selected\n" )
-      m_StateMachine.PushInput( m_FailureInput );
-      m_StateMachine.ProcessInputs();
-      return;
-   }   
-
-   m_ImageDir = directoryName;  **/
   igstkLogMacro2( m_Logger, DEBUG, 
                     "Navigator::LoadMeshProcessing called...\n" )
 //  const char*  fileName = 
@@ -3636,12 +3424,14 @@ void Navigator::TrackerRegistrationProcessing()
        m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(1, 0, 1, 0);
 
 	   //---   qinshuo add ---//
-	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText( 1,  buf );
-	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(1, 0, 1, 0.0);
-	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText( 1,  buf );
-	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(1, 0, 1, 0.0);
-	   //---   qinshuo add ---//
+	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText(2,  "AXIAL");
+	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(2, 0.0, 0.0, 1.0);
+	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontSize(2, 12);
 
+	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText(2,  "Saggittal");
+	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(2, 0.0, 0.0, 1.0);
+	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontSize(2, 12);
+	   //----  qinshuo add ---//
 
     //   m_ViewerGroup->RequestUpdateOverlays();    
     }
@@ -3869,6 +3659,23 @@ void Navigator::ConnectImageRepresentation()
   m_CoronalPlaneSpatialObject->RequestSetBoundingBoxProviderSpatialObject( 
                                                          m_ImageSpatialObject );
 
+
+  // create reslice plane spatial object for new axial view
+  m_AxialPlaneSpatialObject2 = ReslicerPlaneType::New();
+  m_AxialPlaneSpatialObject2->RequestSetReslicingMode( ReslicerPlaneType::Orthogonal );
+  m_AxialPlaneSpatialObject2->RequestSetOrientationType( ReslicerPlaneType::Axial );
+  // create reslice plane spatial object for new sagittal view
+  m_SagittalPlaneSpatialObject2 = ReslicerPlaneType::New();
+  m_SagittalPlaneSpatialObject2->RequestSetReslicingMode(  ReslicerPlaneType::Orthogonal );
+  m_SagittalPlaneSpatialObject2->RequestSetOrientationType( ReslicerPlaneType::Sagittal );
+
+  if ( State_Observer2 == true )
+  {
+	  m_AxialPlaneSpatialObject2->RequestSetBoundingBoxProviderSpatialObject(m_ImageSpatialObject2 );
+	  m_SagittalPlaneSpatialObject2->RequestSetBoundingBoxProviderSpatialObject( m_ImageSpatialObject2 );
+   }
+
+
   // create reslice plane representation for axial view
   m_AxialPlaneRepresentation = ImageRepresentationType::New();
   m_AxialPlaneRepresentation->RequestSetImageSpatialObject( 
@@ -3891,8 +3698,21 @@ void Navigator::ConnectImageRepresentation()
 
   // create representationvolume(Sun adds)
   m_ImageRepresentation3D = VolumeRepresentationType::New();
-  m_ImageRepresentation3D ->RequestSetImageSpatialObject( 
-                                                         m_ImageSpatialObject );  //3D rendering
+  m_ImageRepresentation3D ->RequestSetImageSpatialObject( m_ImageSpatialObject );  //3D rendering
+
+  // create reslice plane representation
+  m_ViewerGroup->new_AxialView->RequestRemoveObject(new_AxialPlaneRepresentation);
+  m_ViewerGroup->new_SagittalView->RequestRemoveObject(new_SagittalPlaneRepresentation);
+    new_AxialPlaneRepresentation = ImageRepresentationType2::New();
+	new_AxialPlaneRepresentation->RequestSetReslicePlaneSpatialObject(m_AxialPlaneSpatialObject2);
+	new_SagittalPlaneRepresentation = ImageRepresentationType2::New();
+	new_SagittalPlaneRepresentation->RequestSetReslicePlaneSpatialObject(m_SagittalPlaneSpatialObject2);
+  if (State_Observer2 == true)
+  {
+	  new_AxialPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject2 );
+	  new_SagittalPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject2 );
+  }
+
 
    /** 
    *  Request information about the slice bounds. The answer will be
@@ -3982,6 +3802,20 @@ void Navigator::ConnectImageRepresentation()
   m_3DViewCrossHairRepresentation->SetLineWidth(2);
   m_3DViewCrossHairRepresentation->RequestSetCrossHairObject( m_CrossHair );
 
+
+  //build the cross hair representations
+  m_ViewerGroup->new_AxialView->RequestRemoveObject( new_Axial_Hair_Representation);  ////----
+  m_ViewerGroup->new_SagittalView->RequestRemoveObject( new_Sagital_Hair_Representation ); ///------
+  new_Axial_Hair_Representation = CrossHairRepresentationType::New();
+  new_Axial_Hair_Representation->SetColor(0,1,0);
+  new_Axial_Hair_Representation->SetLineWidth(2);
+  new_Axial_Hair_Representation->RequestSetCrossHairObject( m_CrossHair );
+
+  new_Sagital_Hair_Representation = CrossHairRepresentationType::New();
+  new_Sagital_Hair_Representation->SetColor(0,1,0);
+  new_Sagital_Hair_Representation->SetLineWidth(2);
+  new_Sagital_Hair_Representation->RequestSetCrossHairObject( m_CrossHair );
+
   // add the cross hair representation to the different views
   m_ViewerGroup->m_AxialView->RequestAddObject( m_AxialCrossHairRepresentation);
   m_ViewerGroup->m_SagittalView->RequestAddObject( 
@@ -3989,12 +3823,17 @@ void Navigator::ConnectImageRepresentation()
   m_ViewerGroup->m_CoronalView->RequestAddObject( 
                                              m_CoronalCrossHairRepresentation );
   m_ViewerGroup->m_3DView->RequestAddObject( m_3DViewCrossHairRepresentation );
+  //add cross hair representation
+  m_ViewerGroup->new_AxialView->RequestAddObject( new_Axial_Hair_Representation);
+  m_ViewerGroup->new_SagittalView->RequestAddObject( new_Sagital_Hair_Representation );
 
   // set background color to the views
   m_ViewerGroup->m_AxialView->SetRendererBackgroundColor(0, 0, 0);
   m_ViewerGroup->m_SagittalView->SetRendererBackgroundColor(0, 0, 0);
   m_ViewerGroup->m_CoronalView->SetRendererBackgroundColor(0, 0, 0);
   m_ViewerGroup->m_3DView->SetRendererBackgroundColor(1,1,1);
+  m_ViewerGroup->new_AxialView->SetRendererBackgroundColor(0, 0, 0);
+  m_ViewerGroup->new_SagittalView->SetRendererBackgroundColor(0, 0, 0);
  
   /**
   *  Connect the scene graph
@@ -4040,10 +3879,14 @@ void Navigator::ConnectImageRepresentation()
   m_ViewerGroup->m_3DView->RequestSetTransformAndParent( identity, 
                                                              m_WorldReference );
 
-  //---   qinshuo add -----//
-  //m_ViewerGroup->new_AxialView->RequestSetTransformAndParent( identity, m_AxialPlaneSpatialObject );
-  //m_ViewerGroup->new_SagittalView->RequestSetTransformAndParent( identity, m_AxialPlaneSpatialObject );
-  //---   qinshuo add ----//
+  if (State_Observer2 == true)
+  {
+	  m_ImageSpatialObject2->RequestSetTransformAndParent(identity,m_WorldReference);
+  }
+  m_AxialPlaneSpatialObject2->RequestSetTransformAndParent( identity, m_WorldReference );
+  m_SagittalPlaneSpatialObject2->RequestSetTransformAndParent( identity,m_WorldReference );
+  m_ViewerGroup->new_AxialView->RequestSetTransformAndParent( identity, m_AxialPlaneSpatialObject2 );
+  m_ViewerGroup->new_SagittalView->RequestSetTransformAndParent( identity, m_SagittalPlaneSpatialObject2 );
 
 
   // set transform and parent to the cross hair object
@@ -4067,9 +3910,9 @@ void Navigator::ConnectImageRepresentation()
                                                  m_CoronalPlaneRepresentation );
   
   //---  qinshuo add -- add reslice plane representations to the newly added view---//
-  //m_ViewerGroup->new_AxialView->RequestAddObject(m_AxialPlaneRepresentation->Copy() );
- // m_ViewerGroup->new_SagittalView->RequestAddObject(m_SagittalPlaneRepresentation->Copy());
-  //--- qinshuo add --//
+  m_ViewerGroup->new_AxialView->RequestAddObject(new_AxialPlaneRepresentation);
+  m_ViewerGroup->new_SagittalView->RequestAddObject(new_SagittalPlaneRepresentation);
+
 
   // add reslice plane representations to the 3D views
   m_AxialPlaneRepresentation2 = m_AxialPlaneRepresentation->Copy();
@@ -4081,19 +3924,30 @@ void Navigator::ConnectImageRepresentation()
   m_CoronalPlaneRepresentation2 = m_CoronalPlaneRepresentation->Copy();
   m_ViewerGroup->m_3DView->RequestAddObject( m_CoronalPlaneRepresentation2 );
 
-  m_ViewerGroup->m_3DView->RequestAddObject( m_ImageRepresentation3D );  //3D rendering
-
 
   // set parallel projection in the 2D views
   m_ViewerGroup->m_AxialView->SetCameraParallelProjection(true);
   m_ViewerGroup->m_SagittalView->SetCameraParallelProjection(true);
   m_ViewerGroup->m_CoronalView->SetCameraParallelProjection(true);
+  // set parallel projection in the 2D views
+  m_ViewerGroup->new_AxialView->SetCameraParallelProjection(true);
+  m_ViewerGroup->new_SagittalView->SetCameraParallelProjection(true);
 
   // reset the cameras in the different views
   m_ViewerGroup->m_AxialView->RequestResetCamera();
   m_ViewerGroup->m_SagittalView->RequestResetCamera();
   m_ViewerGroup->m_CoronalView->RequestResetCamera();
   m_ViewerGroup->m_3DView->RequestResetCamera();
+  /**  set refresh rate and add observers   **/
+  m_ViewerGroup->new_SagittalView->RequestResetCamera();
+  m_ViewerGroup->new_SagittalView->SetRefreshRate(VIEW_2D_REFRESH_RATE);
+  m_ViewerGroup->new_SagittalView->RequestStart();
+  m_ViewerGroup->new_SagittalWidget->RequestEnableInteractions();
+
+  m_ViewerGroup->new_AxialView->RequestResetCamera();
+  m_ViewerGroup->new_AxialView->SetRefreshRate(VIEW_2D_REFRESH_RATE);
+  m_ViewerGroup->new_AxialView->RequestStart();
+  m_ViewerGroup->new_AxialWidget->RequestEnableInteractions();
 
   // set up view parameters
   m_ViewerGroup->m_AxialView->SetRefreshRate( VIEW_2D_REFRESH_RATE );
@@ -4169,8 +4023,6 @@ void Navigator::ConnectImageRepresentation()
   m_ViewerGroup->AddObserver( 
                              igstk::NavigatorQuadrantViews::MousePressedEvent(),
                                                        m_MousePressedObserver );
-
-
 
 }
 
@@ -4490,6 +4342,10 @@ void Navigator::ResliceImageCallback( const itk::EventObject & event )
     m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
     m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
     m_CrossHair->RequestSetCursorPosition( data );
+
+	//---qinshuo add ---//
+	m_AxialPlaneSpatialObject2->RequestSetCursorPosition(data);
+	m_SagittalPlaneSpatialObject2->RequestSetCursorPosition(data);
   }
 }
 
