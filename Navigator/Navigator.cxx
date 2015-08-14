@@ -3804,8 +3804,8 @@ void Navigator::ConnectImageRepresentation()
 
 
   //build the cross hair representations
-  m_ViewerGroup->new_AxialView->RequestRemoveObject( new_Axial_Hair_Representation);  ////----
-  m_ViewerGroup->new_SagittalView->RequestRemoveObject( new_Sagital_Hair_Representation ); ///------
+ // m_ViewerGroup->new_AxialView->RequestRemoveObject( new_Axial_Hair_Representation);  ////----
+ // m_ViewerGroup->new_SagittalView->RequestRemoveObject( new_Sagital_Hair_Representation ); ///------
   new_Axial_Hair_Representation = CrossHairRepresentationType::New();
   new_Axial_Hair_Representation->SetColor(0,1,0);
   new_Axial_Hair_Representation->SetLineWidth(2);
@@ -3858,6 +3858,10 @@ void Navigator::ConnectImageRepresentation()
 
   // set transform and parent to the image spatial object
   m_ImageSpatialObject->RequestSetTransformAndParent(identity,m_WorldReference);
+  if (State_Observer2 == true)
+  {
+	  m_ImageSpatialObject2->RequestSetTransformAndParent(identity,m_WorldReference);
+  }
 
   // set transform and parent to the image plane reslice spatial objects
   m_AxialPlaneSpatialObject->RequestSetTransformAndParent( identity, 
@@ -3879,14 +3883,12 @@ void Navigator::ConnectImageRepresentation()
   m_ViewerGroup->m_3DView->RequestSetTransformAndParent( identity, 
                                                              m_WorldReference );
 
-  if (State_Observer2 == true)
-  {
-	  m_ImageSpatialObject2->RequestSetTransformAndParent(identity,m_WorldReference);
-  }
+  m_AxialPlaneSpatialObject2->RequestDetachFromParent();
+  m_SagittalPlaneSpatialObject2->RequestDetachFromParent();  //reference: https://public.kitware.com/IGSTKWIKI/index.php/Needle_Biopsy
   m_AxialPlaneSpatialObject2->RequestSetTransformAndParent( identity, m_WorldReference );
   m_SagittalPlaneSpatialObject2->RequestSetTransformAndParent( identity,m_WorldReference );
-  m_ViewerGroup->new_AxialView->RequestSetTransformAndParent( identity, m_AxialPlaneSpatialObject2 );
-  m_ViewerGroup->new_SagittalView->RequestSetTransformAndParent( identity, m_SagittalPlaneSpatialObject2 );
+  m_ViewerGroup->new_AxialView-> RequestSetTransformAndParent( identity, m_AxialPlaneSpatialObject );  
+  m_ViewerGroup->new_SagittalView->RequestSetTransformAndParent( identity, m_SagittalPlaneSpatialObject );
 
 
   // set transform and parent to the cross hair object
