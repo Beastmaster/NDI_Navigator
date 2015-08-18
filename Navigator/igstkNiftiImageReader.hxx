@@ -299,7 +299,7 @@ void NiftiImageReader<TPixelType>::RequestReadImage()
   this->m_StateMachine.ProcessInputs();
 }
 
-/** Read in the DICOM series image */
+/** Read in the Nifti image */
 template <class TPixelType>
 void NiftiImageReader<TPixelType>::ReadFileNameProcessing()
 {
@@ -345,12 +345,14 @@ void NiftiImageReader<TPixelType>::AttemptReadImageProcessing()
 //  m_Caster->SetInput(m_ImageFileReader->GetOutput());
   try
   {
-//	  m_Caster->Update();
+		;//	  m_Caster->Update();
   }
-  catch (itk::ExceptionObject* excp)
+  catch (itk::ExceptionObject & excp)
   {
 	  igstkLogMacro( DEBUG, 
 		  "igstk:NiftiImageReader - Failed to cast pixel type.\n" );
+	  this->m_ImageReadingErrorInformation = excp.GetDescription();
+	  igstkLogMacro( DEBUG,"ITK Exception:"+ m_ImageReadingErrorInformation );
 	  this->m_StateMachine.PushInput( this->m_ImageReadingErrorInput );
 	  this->m_StateMachine.ProcessInputs();
 	  return;
@@ -366,10 +368,12 @@ void NiftiImageReader<TPixelType>::AttemptReadImageProcessing()
   {
 	  rescale_filter->Update();
   }
-  catch (itk::ExceptionObject* excp)
+  catch (itk::ExceptionObject  & excp)
   {
 	  igstkLogMacro( DEBUG, 
 		  "igstk:NiftiImageReader - Failed to re-orient.\n" );
+	  std::string xxx = excp.GetDescription();
+	  igstkLogMacro( DEBUG,"ITK Exception:"+ xxx );
 	  this->m_StateMachine.PushInput( this->m_ImageReadingErrorInput );
 	  this->m_StateMachine.ProcessInputs();
 	  return;
@@ -385,10 +389,11 @@ void NiftiImageReader<TPixelType>::AttemptReadImageProcessing()
   {
 	  m_orientor->Update();
   }
-  catch (itk::ExceptionObject* excp)
+  catch (itk::ExceptionObject & excp)
   {
 	  igstkLogMacro( DEBUG, 
 		  "igstk:NiftiImageReader - Failed to re-orient.\n" );
+	  auto xxx = excp.GetDescription();
 	  this->m_StateMachine.PushInput( this->m_ImageReadingErrorInput );
 	  this->m_StateMachine.ProcessInputs();
 	  return;

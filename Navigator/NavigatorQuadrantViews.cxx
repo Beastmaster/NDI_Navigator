@@ -92,7 +92,7 @@ NavigatorQuadrantViews::NavigatorQuadrantViews(int X, int Y, int W, int H, const
   new_AxialView->RequestSetOrientation( ViewType2D::Axial );
 
   new_SagittalWidget->RequestSetView(new_SagittalView);
-  new_AxialWidget->RequestSetView(new_AxialView);
+  new_AxialWidget   ->RequestSetView(new_AxialView);
 
   new_SagittalViewAnnotation = igstk::Annotation2D::New();
   new_AxialViewAnnotation  = igstk::Annotation2D::New();
@@ -207,6 +207,7 @@ NavigatorQuadrantViews::~NavigatorQuadrantViews()
   delete m_SagittalWidget;
   delete m_CoronalWidget;
   delete m_3DWidget;
+
 }
 
 void NavigatorQuadrantViews::RequestResliceImage(void)
@@ -346,6 +347,9 @@ void NavigatorQuadrantViews::RequestUpdateOverlays()
   m_AxialView->RequestAddAnnotation2D( m_AxialViewAnnotation );
   m_SagittalView->RequestAddAnnotation2D( m_SagittalViewAnnotation );
   m_CoronalView->RequestAddAnnotation2D( m_CoronalViewAnnotation );
+
+  new_AxialView->RequestAddAnnotation2D(new_AxialViewAnnotation);
+  new_SagittalView->RequestAddAnnotation2D(new_SagittalViewAnnotation);
 }
 
 void NavigatorQuadrantViews::SaveQuadrantViewsScreenShot()
