@@ -2391,10 +2391,10 @@ void Navigator::LoadSecondImageProcessing()
 
 	unsigned int extentObserverID;
 
-	extentObserverID = m_ImageSpatialObject2->AddObserver( 
+	extentObserverID = m_ImageSpatialObject->AddObserver( 
 		igstk::ImageExtentEvent(), extentObserver );
 
-	m_ImageSpatialObject2->RequestGetImageExtent();
+	m_ImageSpatialObject->RequestGetImageExtent();
 
 	unsigned int xslice, yslice, zslice;
 	if( extentObserver->GotImageExtent() )
@@ -2415,7 +2415,7 @@ void Navigator::LoadSecondImageProcessing()
 		xslice = static_cast< unsigned int > ( (xmin + xmax)/2 );
 
 	}
-	m_ImageSpatialObject2->RemoveObserver( extentObserverID );
+	m_ImageSpatialObject->RemoveObserver( extentObserverID );
 	// Set up cross hairs: use cross hairs created in first image
 	//m_CrossHair = CrossHairType::New();
 	//m_CrossHair->RequestSetBoundingBoxProviderSpatialObject(m_ImageSpatialObject2);
@@ -2429,7 +2429,7 @@ void Navigator::LoadSecondImageProcessing()
 	index[2] = zslice;
 
 	PointType point;
-	m_ImageSpatialObject2->TransformIndexToPhysicalPoint( index, point);
+	m_ImageSpatialObject->TransformIndexToPhysicalPoint( index, point);
 
 	const double *data = NULL;
 	data = point.GetVnlVector().data_block();
@@ -2493,6 +2493,14 @@ void Navigator::LoadSecondImageProcessing()
 	m_ViewerGroup->new_AxialView->RequestStart();
 	m_ViewerGroup->new_AxialWidget->RequestEnableInteractions();
 
+
+
+
+	m_ViewerGroup->new_AxialView->AddObserver(
+		igstk::CoordinateSystemTransformToEvent(), m_AxialViewPickerObserver );
+
+	m_ViewerGroup->new_SagittalView->AddObserver(
+		igstk::CoordinateSystemTransformToEvent(), m_SagittalViewPickerObserver );
 }
 
 
@@ -3072,6 +3080,11 @@ void Navigator::SetImagePickingProcessing()
     m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
     m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
     m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
+
+	//---- qinshuo add ---//
+	m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
+	m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
+
     m_CrossHair->RequestSetCursorPosition( data );
     this->ResliceImage( index );
     }
@@ -3094,6 +3107,10 @@ void Navigator::SetImagePickingProcessing()
     m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
     m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
     m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
+	//---- qinshuo add ---//
+	m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
+	m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
+
     m_CrossHair->RequestSetCursorPosition( data );
     this->ResliceImage( index );
 
@@ -4463,8 +4480,13 @@ void Navigator::AxialViewPickingCallback( const itk::EventObject & event)
 
     unsigned int obsId = m_AxialPlaneSpatialObject->AddObserver( 
       igstk::CoordinateSystemTransformToEvent(), coordinateObserver );
+	m_AxialPlaneSpatialObject->RequestComputeTransformTo( m_WorldReference );
 
-    m_AxialPlaneSpatialObject->RequestComputeTransformTo( m_WorldReference );
+	//qinshuo add
+	unsigned int obsID_new = m_AxialPlaneSpatialObject2->AddObserver(
+		igstk::CoordinateSystemTransformToEvent(), coordinateObserver );
+	m_AxialPlaneSpatialObject2->RequestComputeTransformTo( m_WorldReference );
+
 
     if( coordinateObserver->GotCoordinateSystemTransform() )
     {
@@ -4483,6 +4505,7 @@ void Navigator::AxialViewPickingCallback( const itk::EventObject & event)
     }
 
     m_AxialPlaneSpatialObject->RemoveObserver( obsId );
+	m_AxialPlaneSpatialObject2->RemoveObserver( obsID_new );   //qinshuo add
 
     m_StateMachine.PushInput( m_SetPickingPositionInput );
     m_StateMachine.ProcessInputs();
@@ -4513,8 +4536,11 @@ void Navigator::SagittalViewPickingCallback( const itk::EventObject & event)
 
     unsigned int obsId = m_SagittalPlaneSpatialObject->AddObserver( 
       igstk::CoordinateSystemTransformToEvent(), coordinateObserver );
-
     m_SagittalPlaneSpatialObject->RequestComputeTransformTo( m_WorldReference );
+
+	//--- qinshuo add ---//
+	unsigned int obsId_new = m_SagittalPlaneSpatialObject2->AddObserver( igstk::CoordinateSystemTransformToEvent(), coordinateObserver );
+	m_SagittalPlaneSpatialObject2->RequestComputeTransformTo( m_WorldReference );
 
     if( coordinateObserver->GotCoordinateSystemTransform() )
     {
@@ -4533,6 +4559,7 @@ void Navigator::SagittalViewPickingCallback( const itk::EventObject & event)
     }
 
     m_SagittalPlaneSpatialObject->RemoveObserver( obsId );
+	m_SagittalPlaneSpatialObject2->RemoveObserver( obsId_new );
 
     m_StateMachine.PushInput( m_SetPickingPositionInput );
     m_StateMachine.ProcessInputs();
@@ -4649,7 +4676,11 @@ void Navigator::HandleMousePressed (
     m_AxialPlaneRepresentation2->SetWindowLevel( m_WindowWidth, m_WindowLevel );
     m_SagittalPlaneRepresentation2->SetWindowLevel(m_WindowWidth,m_WindowLevel);
     m_CoronalPlaneRepresentation2->SetWindowLevel(m_WindowWidth, m_WindowLevel);
-	 
+	
+	//-- qinshuo add ---//
+	new_AxialPlaneRepresentation   ->SetWindowLevel( m_WindowWidth, m_WindowLevel );
+	new_SagittalPlaneRepresentation->SetWindowLevel( m_WindowWidth, m_WindowLevel );
+
 /**	for( unsigned int i = 0; i<4; i++)
     {
 
