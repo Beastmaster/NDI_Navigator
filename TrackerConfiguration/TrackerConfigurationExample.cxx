@@ -78,7 +78,7 @@ int main( int argc, char *argv[] )
     {
       std::cerr<<"Wrong number of input arguments.\n";
       std::cerr<<"Usage: "<<argv[0]<<" tracker_configuration_file_name\n";
-      return EXIT_FAILURE;
+      //return EXIT_FAILURE;
     }
 
 // BeginLatex
@@ -146,7 +146,7 @@ int main( int argc, char *argv[] )
 //
 // EndLatex
 // BeginCodeSnippet
-  trackerConfigReader->RequestSetFileName( argv[1] );
+  trackerConfigReader->RequestSetFileName( "C:\\Users\\Administrator\\Desktop\\DATA\\vicraConfiguration.xml" );//argv[1] );
 //EndCodeSnippet
 
   TrackerConfigurationObserver::Pointer tco = 

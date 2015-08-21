@@ -1276,7 +1276,7 @@ void Navigator::ConfigureTrackerProcessing()
   igstkLogMacro2( m_Logger, DEBUG, 
              "BronchoscopyNavigator::ConfigureTrackerProcessing called...\n" )
  
-  const char*  fileName = "D:/ToolKit/DATA/vicraConfiguration.xml";
+  const char*  fileName = "C:\\Users\\Administrator\\Desktop\\DATA\\vicraConfiguration.xml";
  // const char*  fileName =
   //    fl_file_chooser("Select a tracker configuration file","*.xml", 
   //                                                   "auroraConfiguration.xml");
@@ -2623,7 +2623,7 @@ void Navigator::LoadToolSpatialObjectProcessing()
  //  const char*  fileName = 
    //    fl_file_chooser("Chose a tool spatial object mesh", "*.msh", "");
 
-   const char* fileName = "D:/ToolKit/DATA/needletip.msh";
+   const char* fileName = "C:/Users/Administrator/Desktop/DATA/TrackerToolRepresentationMeshes/needletip.msh";
 
    if ( !fileName )
     {
@@ -4423,8 +4423,11 @@ void Navigator::ResliceImageCallback( const itk::EventObject & event )
     m_CrossHair->RequestSetCursorPosition( data );
 
 	//---qinshuo add ---//
-	m_AxialPlaneSpatialObject2->RequestSetCursorPosition(data);
-	m_SagittalPlaneSpatialObject2->RequestSetCursorPosition(data);
+	if (State_Observer2 == true)
+	{
+		m_AxialPlaneSpatialObject2->RequestSetCursorPosition(data);
+		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition(data);
+	}
   }
 }
 
@@ -4483,9 +4486,14 @@ void Navigator::AxialViewPickingCallback( const itk::EventObject & event)
 	m_AxialPlaneSpatialObject->RequestComputeTransformTo( m_WorldReference );
 
 	//qinshuo add
-	unsigned int obsID_new = m_AxialPlaneSpatialObject2->AddObserver(
+	unsigned int obsID_new;
+	if (State_Observer2 == true)
+	{	
+		obsID_new = m_AxialPlaneSpatialObject2->AddObserver(
 		igstk::CoordinateSystemTransformToEvent(), coordinateObserver );
-	m_AxialPlaneSpatialObject2->RequestComputeTransformTo( m_WorldReference );
+
+		m_AxialPlaneSpatialObject2->RequestComputeTransformTo( m_WorldReference );
+	}
 
 
     if( coordinateObserver->GotCoordinateSystemTransform() )
@@ -4505,7 +4513,10 @@ void Navigator::AxialViewPickingCallback( const itk::EventObject & event)
     }
 
     m_AxialPlaneSpatialObject->RemoveObserver( obsId );
-	m_AxialPlaneSpatialObject2->RemoveObserver( obsID_new );   //qinshuo add
+	if (State_Observer2 == true)
+	{
+		m_AxialPlaneSpatialObject2->RemoveObserver( obsID_new );   //qinshuo add
+	}
 
     m_StateMachine.PushInput( m_SetPickingPositionInput );
     m_StateMachine.ProcessInputs();
@@ -4539,8 +4550,13 @@ void Navigator::SagittalViewPickingCallback( const itk::EventObject & event)
     m_SagittalPlaneSpatialObject->RequestComputeTransformTo( m_WorldReference );
 
 	//--- qinshuo add ---//
-	unsigned int obsId_new = m_SagittalPlaneSpatialObject2->AddObserver( igstk::CoordinateSystemTransformToEvent(), coordinateObserver );
-	m_SagittalPlaneSpatialObject2->RequestComputeTransformTo( m_WorldReference );
+	unsigned int obsId_new;
+	if (State_Observer2 == true)
+	{
+		obsId_new = m_SagittalPlaneSpatialObject2->AddObserver( igstk::CoordinateSystemTransformToEvent(), coordinateObserver );
+		m_SagittalPlaneSpatialObject2->RequestComputeTransformTo( m_WorldReference );
+	}
+
 
     if( coordinateObserver->GotCoordinateSystemTransform() )
     {
@@ -4559,7 +4575,9 @@ void Navigator::SagittalViewPickingCallback( const itk::EventObject & event)
     }
 
     m_SagittalPlaneSpatialObject->RemoveObserver( obsId );
-	m_SagittalPlaneSpatialObject2->RemoveObserver( obsId_new );
+
+	if (State_Observer2 == true)
+		m_SagittalPlaneSpatialObject2->RemoveObserver( obsId_new );
 
     m_StateMachine.PushInput( m_SetPickingPositionInput );
     m_StateMachine.ProcessInputs();
@@ -4731,6 +4749,17 @@ void Navigator::HandleKeyPressed (
   }
 }
 
+void Navigator::EnableOrthogonalPlanes()
+{
+    igstkLogMacro2( m_Logger, DEBUG, 
+                    "Navigator::EnableOrthogonalPlanes called...\n" )
+
+  m_ViewerGroup->m_3DView->RequestAddObject( m_AxialPlaneRepresentation );
+  m_ViewerGroup->m_3DView->RequestAddObject( m_SagittalPlaneRepresentation );
+  m_ViewerGroup->m_3DView->RequestAddObject( m_CoronalPlaneRepresentation );
+
+}
+
 /** -----------------------------------------------------------------
 *  Method for reslicing the image given an index number  
 *---------------------------------------------------------------------
@@ -4753,17 +4782,6 @@ void Navigator::ResliceImage ( IndexType index )
 
   m_ViewerGroup->redraw();
   Fl::check();
-}
-
-void Navigator::EnableOrthogonalPlanes()
-{
-    igstkLogMacro2( m_Logger, DEBUG, 
-                    "Navigator::EnableOrthogonalPlanes called...\n" )
-
-  m_ViewerGroup->m_3DView->RequestAddObject( m_AxialPlaneRepresentation );
-  m_ViewerGroup->m_3DView->RequestAddObject( m_SagittalPlaneRepresentation );
-  m_ViewerGroup->m_3DView->RequestAddObject( m_CoronalPlaneRepresentation );
-
 }
 
 void Navigator::DisableOrthogonalPlanes()
