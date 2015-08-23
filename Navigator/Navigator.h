@@ -410,7 +410,7 @@ private:
 
   /** DICOM image reader */
   ImageReaderType::Pointer                              m_ImageReader;
-  ImageReaderType::Pointer                              m_ImageReader1;
+  ImageReaderType::Pointer                              m_ImageReader_overlay;
 
 
   /** Nifti Image reader -- qinshuo add*/
@@ -421,7 +421,7 @@ private:
   /** DICOM image observers */
   ImageObserver::Pointer                                m_ImageObserver;
   bool													State_Observer;
-  ImageObserver::Pointer                                m_ImageObserver1;
+  ImageObserver::Pointer                                m_ImageObserver_overlay;
   VTKImageObserver::Pointer                             m_VTKImageObserver;   //Sun adds
   vtkImageData                                          *m_ImageData;          //Sun adds
 
@@ -453,7 +453,7 @@ private:
   
   /** image spatial object */
   CT_ImageSpatialObjectType::Pointer                       m_ImageSpatialObject;
-  CT_ImageSpatialObjectType::Pointer                       m_ImageSpatialObject1; 
+  CT_ImageSpatialObjectType::Pointer                       m_OverlaySpatialObject; 
   MRI_ImageSpatialObjectType::Pointer					   m_ImageSpatialObject2;   //qinshuo add: second image object
 
   /** image spatial object */

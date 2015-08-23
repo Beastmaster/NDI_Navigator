@@ -2861,12 +2861,12 @@ igstkLogMacro2( m_Logger, DEBUG,
                       "Set ImageReader directory: " << directoryName << "\n" )
 
    /** Setup image reader  */  
-   m_ImageReader1      =   ImageReaderType::New();
+   m_ImageReader_overlay      =   ImageReaderType::New();
 
  //  Image = DeepCopy(m_ImageReader);
-   m_ImageReader1->SetLogger( this->GetLogger() );
-   m_ImageReader1->SetGlobalWarningDisplay(true);
-   m_ImageReader1->DebugOn();
+   m_ImageReader_overlay->SetLogger( this->GetLogger() );
+   m_ImageReader_overlay->SetGlobalWarningDisplay(true);
+   m_ImageReader_overlay->DebugOn();
 
    /** Build itk progress command to assess image load progress */  
    m_ProgressCommand = ProgressCommandType::New();
@@ -2875,46 +2875,46 @@ igstkLogMacro2( m_Logger, DEBUG,
    m_ProgressCommand->SetCallbackFunction(this, &Navigator::OnITKProgressEvent);
 
    // Provide a progress observer to the image reader      
-   m_ImageReader1->RequestSetProgressCallback( m_ProgressCommand );
+   m_ImageReader_overlay->RequestSetProgressCallback( m_ProgressCommand );
 
    //Add observer for invalid directory 
    DICOMImageReaderInvalidDirectoryNameErrorObserver::Pointer didcb = 
                     DICOMImageReaderInvalidDirectoryNameErrorObserver::New();
-   m_ImageReader1->AddObserver( 
+   m_ImageReader_overlay->AddObserver( 
           igstk::DICOMImageDirectoryIsNotDirectoryErrorEvent(), didcb );
 
    //Add observer for a non-existing directory 
    DICOMImageReaderNonExistingDirectoryErrorObserver::Pointer dndcb = 
                       DICOMImageReaderNonExistingDirectoryErrorObserver::New();
-   m_ImageReader1->AddObserver( 
+   m_ImageReader_overlay->AddObserver( 
           igstk::DICOMImageDirectoryDoesNotExistErrorEvent(), dndcb );
     
    //Add observer for a an empty directory name (null string) 
    DICOMImageReaderEmptyDirectoryErrorObserver::Pointer decb = 
                       DICOMImageReaderEmptyDirectoryErrorObserver::New();
-   m_ImageReader1->AddObserver( igstk::DICOMImageDirectoryEmptyErrorEvent(), 
+   m_ImageReader_overlay->AddObserver( igstk::DICOMImageDirectoryEmptyErrorEvent(), 
                                                                          decb );
 
    //Add observer for a directory which does not have enough number of files 
    DICOMImageDirectoryNameDoesNotHaveEnoughFilesErrorObserver::Pointer ddhefcb =
             DICOMImageDirectoryNameDoesNotHaveEnoughFilesErrorObserver::New();
-   m_ImageReader1->AddObserver( 
+   m_ImageReader_overlay->AddObserver( 
       igstk::DICOMImageDirectoryDoesNotHaveEnoughFilesErrorEvent(), ddhefcb );
 
    //Add observer for a directory containing non-DICOM files 
    DICOMImageDirectoryDoesNotContainValidDICOMSeriesErrorObserver::Pointer 
    disgcb = 
           DICOMImageDirectoryDoesNotContainValidDICOMSeriesErrorObserver::New();
-   m_ImageReader1->AddObserver( 
+   m_ImageReader_overlay->AddObserver( 
       igstk::DICOMImageSeriesFileNamesGeneratingErrorEvent(), disgcb );
   
    //Add observer for reading invalid/corrupted dicom files 
    DICOMImageInvalidErrorObserver::Pointer dircb = 
                       DICOMImageInvalidErrorObserver::New();
-   m_ImageReader1->AddObserver( igstk::DICOMImageReadingErrorEvent(), dircb );
+   m_ImageReader_overlay->AddObserver( igstk::DICOMImageReadingErrorEvent(), dircb );
 
    // Set directory
-   m_ImageReader1->RequestSetDirectory( directoryName );
+   m_ImageReader_overlay->RequestSetDirectory( directoryName );
 
    if( didcb->GotDICOMImageReaderInvalidDirectoryNameError() )
     {
@@ -2962,13 +2962,13 @@ igstkLogMacro2( m_Logger, DEBUG,
     }
 
    // Read Image
-   m_ImageReader1->RequestReadImage();
+   m_ImageReader_overlay->RequestReadImage();
 
-   m_ImageObserver1 = ImageObserver::New();
-   m_ImageReader1->AddObserver(ImageReaderType::ImageModifiedEvent(),
-                                                    m_ImageObserver1);
+   m_ImageObserver_overlay = ImageObserver::New();
+   m_ImageReader_overlay->AddObserver(ImageReaderType::ImageModifiedEvent(),
+                                                    m_ImageObserver_overlay);
 
-   m_ImageReader1->RequestGetImage();
+   m_ImageReader_overlay->RequestGetImage();
 
   /** if(!m_ImageObserver1->GotImage())
    { 
@@ -2988,36 +2988,36 @@ igstkLogMacro2( m_Logger, DEBUG,
    }**/
 
 
-   if ( m_ImageObserver1.IsNotNull() )
+   if ( m_ImageObserver_overlay.IsNotNull() )
   {
-    m_ImageSpatialObject1 = m_ImageObserver1->GetImage(); 
+    m_OverlaySpatialObject = m_ImageObserver_overlay->GetImage(); 
 	//m_ImageSpatialObject->RequestDetachFromParent();
 	igstk::Transform identity;
  	identity.SetToIdentity( igstk::TimeStamp::GetLongestPossibleTime() );
-    m_ImageSpatialObject1->RequestSetTransformAndParent( identity, m_WorldReference );
+    m_OverlaySpatialObject->RequestSetTransformAndParent( identity, m_WorldReference );
   //  m_ImageSpatialObject1->RequestDetachFromParent();
   //  m_ImageSpatialObject1->RequestSetTransformAndParent( m_RegistrationTransform, m_ImageSpatialObject );
   //  this->ReadFiducials();    
   //  this->RequestChangeSelectedFiducial();
-    m_StateMachine.PushInputBoolean( m_ImageReader1->FileSuccessfullyRead(), 
+    m_StateMachine.PushInputBoolean( m_ImageReader_overlay->FileSuccessfullyRead(), 
                                      m_SuccessInput, m_FailureInput);
   } 
 
   // build axial reslice representation
     m_AxialOverlayPlaneRepresentation = ImageRepresentationTypePlus::New();
 	                                               
-	m_AxialOverlayPlaneRepresentation->RequestSetImageSpatialObject( m_ImageSpatialObject1 );
+	m_AxialOverlayPlaneRepresentation->RequestSetImageSpatialObject( m_OverlaySpatialObject );
 	//m_AxialOverlayPlaneRepresentation->RequestSetFGImageSO( m_ImageSpatialObject1 );
 	m_AxialOverlayPlaneRepresentation->RequestSetReslicePlaneSpatialObject( m_AxialPlaneSpatialObject );
 
   // build axial mesh reslice representation
 	m_SagittalOverlayPlaneRepresentation =	ImageRepresentationTypePlus::New();
-	m_SagittalOverlayPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject1);
+	m_SagittalOverlayPlaneRepresentation->RequestSetImageSpatialObject(m_OverlaySpatialObject);
 	m_SagittalOverlayPlaneRepresentation->RequestSetReslicePlaneSpatialObject( m_SagittalPlaneSpatialObject );
 
    //build coronal reslice representation
 	m_CoronalOverlayPlaneRepresentation = ImageRepresentationTypePlus::New();
-    m_CoronalOverlayPlaneRepresentation->RequestSetImageSpatialObject(m_ImageSpatialObject1);
+    m_CoronalOverlayPlaneRepresentation->RequestSetImageSpatialObject(m_OverlaySpatialObject);
 //	m_CoronalOverlayPlaneRepresentation->RequestSetFGImageSO(m_ImageSpatialObject1);
 	m_CoronalOverlayPlaneRepresentation->RequestSetReslicePlaneSpatialObject( m_CoronalPlaneSpatialObject );
 
@@ -3041,7 +3041,7 @@ igstkLogMacro2( m_Logger, DEBUG,
 
 	m_ImageSurface3D = SurfaceRepresentationType::New();
     m_ImageSurface3D ->RequestSetImageSpatialObject( 
-                                                         m_ImageSpatialObject1 );  //3D rendering
+                                                         m_OverlaySpatialObject );  //3D rendering
 	m_ViewerGroup->m_3DView->RequestAddObject( m_ImageSurface3D );
 	m_ViewerGroup->m_3DView->RequestResetCamera();
 
@@ -3097,10 +3097,10 @@ void Navigator::SetImagePickingProcessing()
   else
   {	  
    m_flagImage = false;
-  if ( m_ImageSpatialObject1->IsInside( point ) )
+  if ( m_OverlaySpatialObject->IsInside( point ) )
     {
     CT_ImageSpatialObjectType::IndexType index;
-    m_ImageSpatialObject1->TransformPhysicalPointToIndex( point, index);
+    m_OverlaySpatialObject->TransformPhysicalPointToIndex( point, index);
 
     const double *data = point.GetVnlVector().data_block();
 
@@ -3116,11 +3116,11 @@ void Navigator::SetImagePickingProcessing()
 
 	m_VTKImageObserver = VTKImageObserver::New();
 	
-	m_ImageSpatialObject1->AddObserver( igstk::VTKImageModifiedEvent(), 
+	m_OverlaySpatialObject->AddObserver( igstk::VTKImageModifiedEvent(), 
                                      m_VTKImageObserver );
 
 	m_VTKImageObserver->Reset();
-	m_ImageSpatialObject1->RequestGetVTKImage();
+	m_OverlaySpatialObject->RequestGetVTKImage();
 
 	if( m_VTKImageObserver->GotVTKImage() )
     {
@@ -4001,7 +4001,7 @@ void Navigator::ConnectImageRepresentation()
                                                 m_SagittalPlaneRepresentation );
   m_ViewerGroup->m_CoronalView->RequestAddObject( 
                                                  m_CoronalPlaneRepresentation );
-  
+  m_ViewerGroup->m_3DView->RequestAddObject(m_ImageRepresentation3D);
 
 
   // add reslice plane representations to the 3D views
