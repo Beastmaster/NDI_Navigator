@@ -29,7 +29,6 @@ int main(int, char** )
   igstk::RealTimeClock::Initialize();
 
   Navigator * application = new Navigator;
-
   while( !application->HasQuitted() )
   {
     Fl::wait(0.001);

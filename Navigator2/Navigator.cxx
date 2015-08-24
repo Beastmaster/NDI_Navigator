@@ -1053,7 +1053,7 @@ Navigator::Navigator() : m_StateMachine(this)
 
   m_StateMachine.SetReadyToRun();
 
-  this->DisableAll();
+  //this->DisableAll();
 
   this->m_LoadImageButton->activate();
 
@@ -1064,6 +1064,7 @@ Navigator::Navigator() : m_StateMachine(this)
   this->ExportStateMachineDescription( ofile, skipLoops );
   ofile.close();
 */
+  
 }
 
 /** -----------------------------------------------------------------
@@ -1894,10 +1895,10 @@ void Navigator::LoadImageProcessing()
    m_ProgressCommand = ProgressCommandType::New();
 
    /** Set the callback to the itk progress command */
-   m_ProgressCommand->SetCallbackFunction(this, &Navigator::OnITKProgressEvent);
+//   m_ProgressCommand->SetCallbackFunction(this, &Navigator::OnITKProgressEvent);
 
    // Provide a progress observer to the image reader      
-   m_ImageReader->RequestSetProgressCallback( m_ProgressCommand );
+//   m_ImageReader->RequestSetProgressCallback( m_ProgressCommand );     // qinshuo add  {error occured}
 
    //Add observer for invalid directory 
    DICOMImageReaderInvalidDirectoryNameErrorObserver::Pointer didcb = 

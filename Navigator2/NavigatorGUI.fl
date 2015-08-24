@@ -1,10 +1,12 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0107 
+version 1.0303 
 header_name {.h} 
 code_name {.cxx}
-decl {\#include <FL/fl_ask.H>} {} 
+decl {\#include <FL/fl_ask.H>} {private local
+} 
 
-decl {\#include <FL/Fl_File_Chooser.H>} {} 
+decl {\#include <FL/Fl_File_Chooser.H>} {private local
+} 
 
 class NavigatorGUI {open : {public igstk::Object}
 } {
@@ -13,9 +15,9 @@ class NavigatorGUI {open : {public igstk::Object}
     Fl_Window mainWindow {
       label {IGSTK - Navigator Application}
       callback {Quit();}
-      xywh {4 28 1276 800} type Double box PLASTIC_UP_BOX resizable
+      xywh {12 36 1260 784} type Double box PLASTIC_UP_BOX hide resizable
       code0 {\#include "igstkFLTKWidget.h"}
-      code1 {\#include <time.h>} visible
+      code1 {\#include <time.h>}
     } {
       Fl_Group m_ControlGroup {
         xywh {0 0 150 800} box FLAT_BOX color 7 selection_color 7 labeltype ENGRAVED_LABEL labelcolor 4 align 0
@@ -109,8 +111,7 @@ int x = m_ControlGroup->x();
 int y = m_ControlGroup->y();
 int height = m_ControlGroup->h();
 
-m_ControlGroup->resize(x,y,150,height);} {selected
-    }
+m_ControlGroup->resize(x,y,150,height);} {}
     Fl_Window m_WinProgress {
       label {SNAP Progress Meter}
       xywh {464 491 485 70} type Double box BORDER_BOX color 53 modal noborder visible
@@ -211,52 +212,54 @@ this->RequestRejectRegistration();}
   } {
     code {delete m_ViewerGroup;} {}
   }
-  decl {clock_t  m_SplashScreenStartTime;} {}
-  decl {bool hasQuitted;} {}
+  decl {clock_t  m_SplashScreenStartTime;} {private local
+  }
+  decl {bool hasQuitted;} {private local
+  }
   Function {Quit()} {open return_type void
   } {
     code {m_ConfirmToQuitWindow->show();
 CenterChildWindowInParentWindow( m_ConfirmToQuitWindow );} {}
   }
-  Function {HasQuitted()} {return_type bool
+  Function {HasQuitted()} {open return_type bool
   } {
     code {return this->hasQuitted;} {}
   }
-  Function {RequestLoadImage()} {return_type {virtual void}
+  Function {RequestLoadImage()=0} {open return_type {virtual void}
   } {}
-  Function {RequestLoadMesh()} {return_type {virtual void}
+  Function {RequestLoadMesh()=0} {open return_type {virtual void}
   } {}
-  Function {RequestChangeSelectedFiducial()} {return_type {virtual void}
+  Function {RequestChangeSelectedFiducial()=0} {return_type {virtual void}
   } {}
-  Function {RequestInitializeTracker()} {return_type {virtual void}
+  Function {RequestInitializeTracker()=0} {return_type {virtual void}
   } {}
-  Function {RequestDisconnectTracker()} {return_type {virtual void}
+  Function {RequestDisconnectTracker()=0} {return_type {virtual void}
   } {}
-  Function {RequestTrackerRegistration()} {return_type {virtual void}
+  Function {RequestTrackerRegistration()=0} {return_type {virtual void}
   } {}
-  Function {RequestToggleSetImageFiducials()} {return_type {virtual void}
+  Function {RequestToggleSetImageFiducials()=0} {return_type {virtual void}
   } {}
-  Function {RequestResetCameraToImageBounds()} {return_type {virtual void}
+  Function {RequestResetCameraToImageBounds(){}} {return_type {virtual void}
   } {}
-  Function {RequestCancelImageLoad()} {return_type {virtual void}
+  Function {RequestCancelImageLoad()=0} {return_type {virtual void}
   } {}
-  Function {RequestAcceptImageLoad()} {return_type {virtual void}
+  Function {RequestAcceptImageLoad()=0} {return_type {virtual void}
   } {}
-  Function {RequestPrepareToQuit()} {return_type {virtual void}
+  Function {RequestPrepareToQuit()=0} {return_type {virtual void}
   } {}
-  Function {RequestConfirmToProceed()} {return_type {virtual void}
+  Function {RequestConfirmToProceed(){}} {selected return_type {virtual void}
   } {}
-  Function {RequestStartTracking()} {return_type {virtual void}
+  Function {RequestStartTracking()=0} {return_type {virtual void}
   } {}
-  Function {RequestAcceptRegistration()} {return_type {virtual void}
+  Function {RequestAcceptRegistration()=0} {return_type {virtual void}
   } {}
-  Function {RequestRejectRegistration()} {return_type {virtual void}
+  Function {RequestRejectRegistration()=0} {return_type {virtual void}
   } {}
-  Function {RequestChangeSelectedViewMode()} {return_type {virtual void}
+  Function {RequestChangeSelectedViewMode()=0} {return_type {virtual void}
   } {}
-  Function {RequestStartSetTrackerFiducials()} {return_type {virtual void}
+  Function {RequestStartSetTrackerFiducials()=0} {return_type {virtual void}
   } {}
-  Function {DisableAll()} {return_type void
+  Function {DisableAll()} {open return_type void
   } {
     code {m_LoadImageButton->deactivate();
 m_LoadMeshButton->deactivate();
@@ -266,7 +269,7 @@ m_ConfigureTrackerButton->deactivate();
 m_RegisterButton->deactivate();
 m_ViewModeList->deactivate();} {}
   }
-  Function {RequestLoadToolSpatialObject()} {return_type {virtual void}
+  Function {RequestLoadToolSpatialObject()=0} {return_type {virtual void}
   } {}
   Function {CenterChildWindowInParentWindow(Fl_Window *childWindow)} {open return_type void
   } {

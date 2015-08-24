@@ -96,12 +96,6 @@ Navigator::Navigator() : m_StateMachine(this)
   /* --   qinshuo  add -----*/
   State_Observer = false;
   State_Observer2= false;
-  //new_AxialPlaneRepresentation = ImageRepresentationType2::New();
-  //new_SagittalPlaneRepresentation = ImageRepresentationType2::New();
-  //new_Axial_Hair_Representation = CrossHairRepresentationType::New();
-  //new_Sagital_Hair_Representation = CrossHairRepresentationType::New();	
-  //new_Axial_Hair_Representation = CrossHairRepresentationType::New();
-  //new_Sagital_Hair_Representation = CrossHairRepresentationType::New();
 
   m_TrackerRMS = 0.0;
   m_WindowWidth = 542;
@@ -1900,6 +1894,9 @@ Navigator::ReportSuccessAcceptingRegistrationProcessing()
   m_CoronalPlaneSpatialObject->RequestSetToolSpatialObject( 
                                                           m_ToolSpatialObject );
 
+  m_AxialPlaneSpatialObject2->RequestSetToolSpatialObject( m_ToolSpatialObject );
+  m_SagittalPlaneSpatialObject2->RequestSetToolSpatialObject( m_ToolSpatialObject );
+
   m_CrossHair->RequestSetToolSpatialObject( m_ToolSpatialObject ); 
        
   igstk::Transform identity;
@@ -2501,6 +2498,9 @@ void Navigator::LoadSecondImageProcessing()
 
 	m_ViewerGroup->new_SagittalView->AddObserver(
 		igstk::CoordinateSystemTransformToEvent(), m_SagittalViewPickerObserver );
+
+
+
 }
 
 
@@ -2623,7 +2623,7 @@ void Navigator::LoadToolSpatialObjectProcessing()
  //  const char*  fileName = 
    //    fl_file_chooser("Chose a tool spatial object mesh", "*.msh", "");
 
-   const char* fileName = "C:/Users/Administrator/Desktop/DATA/TrackerToolRepresentationMeshes/needletip.msh";
+   const char* fileName = "C:/Users/Administrator/Desktop/DATA/TrackerToolRepresentationMeshes/sProbe.msh";
 
    if ( !fileName )
     {
@@ -3566,13 +3566,11 @@ void Navigator::TrackerRegistrationProcessing()
        m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(1, 0, 1, 0);
 
 	   //---   qinshuo add ---//
-	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText(2,  "AXIAL");
-	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(2, 0.0, 0.0, 1.0);
-	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontSize(2, 12);
+	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText(1,  buf );
+	   m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(1,0,1,0);
 
-	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText(2,  "Saggittal");
-	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(2, 0.0, 0.0, 1.0);
-	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontSize(2, 12);
+	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText(1, buf );
+	   m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(1,0,1,0);
 	   //----  qinshuo add ---//
 
     //   m_ViewerGroup->RequestUpdateOverlays();    
@@ -4001,7 +3999,7 @@ void Navigator::ConnectImageRepresentation()
                                                 m_SagittalPlaneRepresentation );
   m_ViewerGroup->m_CoronalView->RequestAddObject( 
                                                  m_CoronalPlaneRepresentation );
-  m_ViewerGroup->m_3DView->RequestAddObject(m_ImageRepresentation3D);
+  //m_ViewerGroup->m_3DView->RequestAddObject(m_ImageRepresentation3D);
 
 
   // add reslice plane representations to the 3D views
@@ -4420,14 +4418,14 @@ void Navigator::ResliceImageCallback( const itk::EventObject & event )
     m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
     m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
     m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
-    m_CrossHair->RequestSetCursorPosition( data );
-
 	//---qinshuo add ---//
 	if (State_Observer2 == true)
 	{
 		m_AxialPlaneSpatialObject2->RequestSetCursorPosition(data);
 		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition(data);
 	}
+
+	m_CrossHair->RequestSetCursorPosition( data );
   }
 }
 
