@@ -15,41 +15,41 @@ class NavigatorGUI {open : {public igstk::Object}
     Fl_Window mainWindow {
       label {Navigation System}
       callback {Quit();} open
-      xywh {26 211 1374 877} type Double box PLASTIC_UP_BOX color 30 align 0 hide resizable
+      xywh {87 67 1217 799} type Double box PLASTIC_UP_BOX color 30 align 0 hide resizable
       code0 {\#include "igstkFLTKWidget.h"}
       code1 {\#include <time.h>}
     } {
       Fl_Group {} {
         xywh {0 -5 1315 815} color 30 align 0
       } {
-        Fl_Group m_ControlGroup {open
-          xywh {1150 0 150 795} box FLAT_BOX color 30 selection_color 7 labeltype ENGRAVED_LABEL labelsize 17 labelcolor 4 align 0
+        Fl_Group m_ControlGroup {open selected
+          xywh {1065 0 150 795} box FLAT_BOX color 30 selection_color 7 labeltype ENGRAVED_LABEL labelsize 17 labelcolor 4 align 0
         } {
           Fl_Button m_QuitButton {
             label Quit
             callback {Quit();}
-            tooltip {Quit application} xywh {1156 741 130 30} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 55 selection_color 134 labelsize 12 hide
+            tooltip {Quit application} xywh {1071 741 130 30} box PLASTIC_UP_BOX down_box PLASTIC_DOWN_BOX color 55 selection_color 134 labelsize 12 hide
           }
           Fl_Box m_TrackingSemaphore {
             label OFF
-            xywh {1156 690 130 30} box GTK_UP_BOX color 246
+            xywh {1071 690 130 30} box GTK_UP_BOX color 246
           }
           Fl_Box m_ReferenceSemaphore {
             label OFF
-            xywh {1156 616 130 30} box GTK_UP_BOX color 246
+            xywh {1071 616 130 30} box GTK_UP_BOX color 246
           }
           Fl_Box {} {
             label {Reference Status}
-            xywh {1156 585 130 30} color 7 labelsize 17 labelcolor 7
+            xywh {1071 585 130 30} color 7 labelsize 17 labelcolor 7
           }
           Fl_Box {} {
             label {Tool Status}
-            xywh {1156 662 130 30} labelsize 17 labelcolor 7
+            xywh {1071 662 130 30} labelsize 17 labelcolor 7
           }
           Fl_Choice m_ViewModeList {
             label {Viewing Mode}
             callback {RequestChangeSelectedViewMode();}
-            xywh {1156 549 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 labelsize 17 labelcolor 7 align 1
+            xywh {1071 549 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 labelsize 17 labelcolor 7 align 1
           } {
             MenuItem {} {
               label Orthogonal
@@ -67,66 +67,66 @@ class NavigatorGUI {open : {public igstk::Object}
           Fl_Button m_LoadImageButton {
             label {Load Image}
             callback {RequestLoadImage();}
-            tooltip {Load MRI data set} xywh {1156 6 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
+            tooltip {Load MRI data set} xywh {1071 6 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
           }
           Fl_Button m_LoadMeshButton {
             label {Load Mesh}
             callback {RequestLoadMesh();}
-            tooltip {Load Segmentation(.msh)} xywh {1156 80 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
+            tooltip {Load Segmentation(.msh)} xywh {1071 80 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
           }
           Fl_Choice m_FiducialsPointList {
             label Fiducials
             callback {RequestChangeSelectedFiducial();}
-            xywh {1156 201 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 labelsize 17 labelcolor 7 align 1
+            xywh {1071 201 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 labelsize 17 labelcolor 7 align 1
           } {}
           Fl_Button m_ModifyFiducialsButton {
             label {Modify Fiducials}
             callback {RequestToggleSetImageFiducials();}
-            tooltip {Modify fiducial coordinates (by mouse clicking on image)} xywh {1156 230 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
+            tooltip {Modify fiducial coordinates (by mouse clicking on image)} xywh {1071 230 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
           }
           Fl_Button m_ConfigureTrackerButton {
             label {Configure Tracker}
             callback {RequestLoadToolSpatialObject();}
-            tooltip {Configue tracker system} xywh {1156 291 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
+            tooltip {Configue tracker system} xywh {1071 291 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
           }
           Fl_Button m_RegisterButton {
             label Register
             callback {RequestStartSetTrackerFiducials();}
-            tooltip {Register tracker system to image} xywh {1156 343 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
+            tooltip {Register tracker system to image} xywh {1071 343 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
           }
           Fl_Slider m_SegmentationOpacitySlider {
             label {Opacity of  Mesh}
             callback {SetOpacityOfImplant();}
-            tooltip {Adjust opacity of Segmentation} xywh {1156 477 130 30} type {Horz Knob} box PLASTIC_UP_BOX color 7 selection_color 7 labelsize 17 labelcolor 7 align 1 step 0.1 value 1
+            tooltip {Adjust opacity of Segmentation} xywh {1071 477 130 30} type {Horz Knob} box PLASTIC_UP_BOX color 7 selection_color 7 labelsize 17 labelcolor 7 align 1 step 0.1 value 1
           }
           Fl_Slider m_SkullOpacitySlider {
             label {Opacity of Skull}
             callback {SetOpacityOfSkull();}
-            tooltip {Adjust opacity of skull} xywh {1156 407 130 30} type {Horz Knob} box PLASTIC_UP_BOX color 7 selection_color 7 labelsize 17 labelcolor 7 align 1 step 0.1 value 1
+            tooltip {Adjust opacity of skull} xywh {1071 407 130 30} type {Horz Knob} box PLASTIC_UP_BOX color 7 selection_color 7 labelsize 17 labelcolor 7 align 1 step 0.1 value 1
           }
           Fl_Button m_LoadOverlayButton {
             label {Load Overlay}
             callback {RequestLoadOverlay();}
-            tooltip {Load Overlay} xywh {1156 45 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
+            tooltip {Load Overlay} xywh {1071 45 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
           }
           Fl_Button m_ScreenShotButton {
             callback {RequestScreenShot();}
-            tooltip ScreenShot image {screenshot.png} xywh {1156 746 130 30} box GTK_UP_BOX color 23
+            tooltip ScreenShot image {screenshot.png} xywh {1071 746 130 30} box GTK_UP_BOX color 23
           }
           Fl_Button m_DisplayCtrl {
             label {Display Ctrl}
             callback {RegistrationDisplayControlWindow->show();}
-            tooltip {Load Segmentation(.msh)} xywh {1156 155 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
+            tooltip {Load Segmentation(.msh)} xywh {1071 155 130 30} box GTK_UP_BOX down_box GTK_DOWN_BOX color 77 selection_color 215
           }
           Fl_Button m_LoadSecondImage {
             label LoadSecondImage
             callback {RequestLoadSecondImage();}
-            xywh {1156 118 130 30} box GTK_UP_BOX down_box GTK_UP_BOX color 77 selection_color 106
+            xywh {1071 118 130 30} box GTK_UP_BOX down_box GTK_UP_BOX color 77 selection_color 106
           }
         }
       }
       Fl_Group m_ViewerGroup {open
-        xywh {0 0 1150 800} box UP_BOX color 30 selection_color 7 labelcolor 7 align 0
+        xywh {0 0 1065 800} box UP_BOX color 30 selection_color 7 labelcolor 7 align 0
         code0 {\#include "NavigatorQuadrantViews.h"}
         class {igstk::NavigatorQuadrantViews}
       } {}
@@ -240,7 +240,7 @@ this->RequestRejectRegistration();}
     }
     Fl_Window RegistrationDisplayControlWindow {
       label {Surface Registration} open
-      xywh {215 501 668 263} type Double visible
+      xywh {223 509 652 247} type Double visible
     } {
       Fl_Box Display1 {
         label {Target Point Sets}
@@ -250,7 +250,7 @@ this->RequestRejectRegistration();}
         class {igstk::FLTKWidget}
       }
       Fl_Box Display2 {
-        label {Moving Point Sets} selected
+        label {Moving Point Sets}
         xywh {395 0 380 330} box FLAT_BOX color 32 labelcolor 7
         code0 {\#include "igstkFLTKWidget.h"}
         code1 {\#include "igstkView3D.h"}

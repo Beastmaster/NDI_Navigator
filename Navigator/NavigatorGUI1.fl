@@ -1,10 +1,12 @@
 # data file for the Fltk User Interface Designer (fluid)
-version 1.0110 
+version 1.0303 
 header_name {.h} 
 code_name {.cxx}
-decl {\#include <FL/fl_ask.H>} {} 
+decl {\#include <FL/fl_ask.H>} {private local
+} 
 
-decl {\#include <FL/Fl_File_Chooser.H>} {} 
+decl {\#include <FL/Fl_File_Chooser.H>} {private local
+} 
 
 class NavigatorGUI {open : {public igstk::Object}
 } {
@@ -13,14 +15,14 @@ class NavigatorGUI {open : {public igstk::Object}
     Fl_Window mainWindow {
       label {Navigation System}
       callback {Quit();} open
-      xywh {494 131 1300 800} type Double box PLASTIC_UP_BOX color 30 align 0 resizable
+      xywh {166 89 1292 788} type Double box PLASTIC_UP_BOX color 30 align 0 hide resizable
       code0 {\#include "igstkFLTKWidget.h"}
-      code1 {\#include <time.h>} visible
+      code1 {\#include <time.h>}
     } {
       Fl_Group {} {open
         xywh {-30 -20 1331 875} color 30 align 0
       } {
-        Fl_Group m_ControlGroup {open selected
+        Fl_Group m_ControlGroup {open
           xywh {1151 0 150 800} box FLAT_BOX color 30 selection_color 7 labelsize 17 labelcolor 4 align 0
         } {
           Fl_Button m_QuitButton {
@@ -207,7 +209,7 @@ this->RequestCancelImageLoad();}
       xywh {741 273 422 150} type Double box GTK_UP_BOX color 30 selection_color 55 align 16 modal noborder visible
     } {
       Fl_Box {} {
-        label {The RMS registration error is:}
+        label {The RMS registration error is:} selected
         xywh {17 19 205 32} labelsize 15 labelcolor 7
       }
       Fl_Button {} {
@@ -235,8 +237,10 @@ this->RequestRejectRegistration();}
   } {
     code {delete m_ViewerGroup;} {}
   }
-  decl {clock_t  m_SplashScreenStartTime;} {}
-  decl {bool hasQuitted;} {}
+  decl {clock_t  m_SplashScreenStartTime;} {private local
+  }
+  decl {bool hasQuitted;} {private local
+  }
   Function {Quit()} {return_type void
   } {
     code {m_ConfirmToQuitWindow->show();

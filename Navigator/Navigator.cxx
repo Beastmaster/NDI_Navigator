@@ -1907,8 +1907,9 @@ Navigator::ReportSuccessAcceptingRegistrationProcessing()
   m_ToolProjection->SetSize(150);
   m_ToolProjection->RequestSetTransformAndParent( identity, m_WorldReference );
 
+  //---===============================--//
   // setup axial tool projection
-/**  m_AxialToolProjectionRepresentation = ToolProjectionRepresentationType::New();
+  m_AxialToolProjectionRepresentation = ToolProjectionRepresentationType::New();
   m_AxialToolProjectionRepresentation->RequestSetToolProjectionObject( 
                                                              m_ToolProjection );
   m_AxialToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( 
@@ -1931,7 +1932,7 @@ Navigator::ReportSuccessAcceptingRegistrationProcessing()
                                                              m_ToolProjection );
   m_CoronalToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( 
                                                   m_CoronalPlaneSpatialObject );
-  m_CoronalToolProjectionRepresentation->SetColor( 1,1,0 );**/
+  m_CoronalToolProjectionRepresentation->SetColor( 1,1,0 );
 
   // add tool representation to the 3D view
   m_ViewerGroup->m_3DView->RequestAddObject( m_ToolRepresentation );

@@ -40,7 +40,7 @@ NavigatorQuadrantViews::NavigatorQuadrantViews(int X, int Y, int W, int H, const
   m_X = 150; // width of the control panel
   m_Y = 0;
 
-  m_Width = parentGroup->w() - m_X - 83;
+  m_Width = parentGroup->w() - m_X ;
   m_Height = parentGroup->h(); 
 
   m_WW = (int) (m_Width-2*C)/2;

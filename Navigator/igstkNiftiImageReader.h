@@ -55,7 +55,7 @@ igstkEventMacro( NiftiInvalidRequestErrorEvent, NiftiImageReaderErrorEvent );
 igstkEventMacro(NiftiImageReadingErrorEvent, NiftiImageReaderErrorEvent );
   
 
-/** \class DICOMImageReader
+/** \class AnalyzeImageReader
  * 
  * \brief This class reads nifti files. 
  */
