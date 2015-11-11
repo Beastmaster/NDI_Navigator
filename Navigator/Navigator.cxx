@@ -91,7 +91,7 @@ Navigator::Navigator() : m_StateMachine(this)
   m_SagittalViewInitialized = false;
   m_CoronalViewInitialized = false;
   m_ModifyImageFiducialsEnabled = false;  
-
+  m_SecondImageInitialized = false; // qinshuo add
 
   /* --   qinshuo  add -----*/
   State_Observer = false;
@@ -2500,8 +2500,8 @@ void Navigator::LoadSecondImageProcessing()
 	m_ViewerGroup->new_SagittalView->AddObserver(
 		igstk::CoordinateSystemTransformToEvent(), m_SagittalViewPickerObserver );
 
-
-
+	// change second image status here
+	m_SecondImageInitialized = true;
 }
 
 
@@ -3083,8 +3083,11 @@ void Navigator::SetImagePickingProcessing()
     m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
 
 	//---- qinshuo add ---//
-	m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
-	m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
+	if (m_SecondImageInitialized)
+	{
+		m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
+		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
+	}
 
     m_CrossHair->RequestSetCursorPosition( data );
     this->ResliceImage( index );

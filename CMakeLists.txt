@@ -20,7 +20,7 @@ include(${VTK_USE_FILE})
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
-find_package(GDCM REQUIRED)
+#find_package(GDCM REQUIRED)
 
 ######-----------add by qinshuo----------######
 

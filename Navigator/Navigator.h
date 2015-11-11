@@ -455,6 +455,7 @@ private:
   CT_ImageSpatialObjectType::Pointer                       m_ImageSpatialObject;
   CT_ImageSpatialObjectType::Pointer                       m_OverlaySpatialObject; 
   MRI_ImageSpatialObjectType::Pointer					   m_ImageSpatialObject2;   //qinshuo add: second image object
+  bool													   m_SecondImageInitialized; // qinshuo add: check status of second image
 
   /** image spatial object */
   MeshObjectType::Pointer                       meshObject;  //Sun pick
