@@ -86,6 +86,14 @@
 #include "igstkNiftiImageReader.h"
 
 
+//qinshuo add: file path
+#define ImagePath_DEF         "D:/QIN/DATA"
+#define OverlayPath_DEF       "D:/QIN/DATA"
+#define MeshPath_DEF          "D:/QIN/DATA"
+#define SecondImagePath_DEF   "D:/QIN/DATA"
+
+
+
 class vtkImageMapToColors;
 class vtkPlaneSource;
 class vtkPlane;
@@ -95,9 +103,12 @@ class vtkImageResliceMapper;
 class vtkImageProperty;
 class vtkLookupTable;
 class my_MRImageReader;
+class com_DicomImageSpatialObject;
+class com_DicomImageReader;
 
 namespace igstk
 {
+/***   .nii file reader   **/
 	class my_MRImageReader:  public NiftiImageReader< MRImageSpatialObject >
 	{
 
@@ -107,9 +118,8 @@ namespace igstk
 	  igstkStandardClassTraitsMacro( my_MRImageReader, 
 									 NiftiImageReader< MRImageSpatialObject > )
 
-
-	/** Event type */
-//	igstkLoadedTemplatedObjectEventMacro( ImageModifiedEvent, IGSTKEvent, MRImageSpatialObject);
+	 /** Event type */
+     //	igstkLoadedTemplatedObjectEventMacro( ImageModifiedEvent, IGSTKEvent, MRImageSpatialObject);
 
 	  /** Declarations needed for the Logger */
 	  igstkLoggerMacro();
@@ -135,7 +145,72 @@ namespace igstk
 		my_MRImageReader(const Self&);         //purposely not implemented
 		void operator=(const Self&);        //purposely not implemented
 	};
+
+
+/**   common spatial image object regardless of modiality  **/
+	class com_DicomImageSpatialObject : 
+		  public ImageSpatialObject< signed short, 3 >
+	{
+	public:
+	  /** Type of the superclass. 
+	   *  This must be declared first because the StandardClassTraitsMacro
+	   *  will otherwise get confused with the commas of the template */
+	  typedef ImageSpatialObject< signed short, 3>     SuperclassType;
+  
+	  /** Macro with standard traits declarations. */
+	  igstkStandardClassTraitsMacro( com_DicomImageSpatialObject, SuperclassType )
+
+	protected:
+
+	  com_DicomImageSpatialObject():m_StateMachine((Self *)this){}
+	  virtual ~com_DicomImageSpatialObject(){};
+
+	  /** Print the object information in a stream. */
+	  void PrintSelf( std::ostream& os, itk::Indent indent ) const {;} 
+
+	private:
+ 
+	  /** These two methods must be declared and note be implemented
+	   *  in order to enforce the protocol of smart pointers. */
+	  com_DicomImageSpatialObject(const Self&);     //purposely not implemented
+	  void operator=(const Self&);           //purposely not implemented
+	};
+
+
+/**   common dicom image reader regardless of modiality  **/
+	class com_DicomImageReader:  public DICOMImageReader< CTImageSpatialObject >
+	{
+
+	public:
+
+	  /** Macro with standard traits declarations. */
+	  igstkStandardClassTraitsMacro( com_DicomImageReader, 
+									 DICOMImageReader< CTImageSpatialObject > )
+
+	protected:
+
+	  com_DicomImageReader( void ) : m_StateMachine(this){}
+	  virtual ~com_DicomImageReader( void ) {};
+	  /** Check if MRI dicom is being read */
+	  // the modification here is: no matter what the modality is, just read the image!
+	  bool CheckModalityType( DICOMInformationType modaltiy )
+	  {
+		  if( modaltiy != "MR" )			  return true;
+		  else								  return true;
+	  }
+	  /** Print the object information in a stream. */
+	  void PrintSelf( std::ostream& os, itk::Indent indent ) const {Superclass::PrintSelf(os, indent);}
+
+	private:
+  
+	  /** These two methods must be declared and note be implemented
+	   *  in order to enforce the protocol of smart pointers. */
+	  com_DicomImageReader(const Self&);         //purposely not implemented
+	  void operator =(const Self&);        //purposely not implemented
+	};
 }
+
+
 
 /** \class Navigator
 * 
@@ -158,6 +233,7 @@ public:
 
   /** typedef for image reader */
   typedef igstk::CTImageReader                        ImageReaderType;
+  typedef igstk::com_DicomImageReader				  DicomReaderType;  //qinshuo add: read dicom images regardless of it modilaty
   typedef igstk::my_MRImageReader      				  MRImageReaderType;
 
   /** typedef for mesh readers */
@@ -167,6 +243,7 @@ public:
 
   typedef igstk::MRImageSpatialObject                 MRI_ImageSpatialObjectType;
   typedef igstk::CTImageSpatialObject                 CT_ImageSpatialObjectType;
+  typedef igstk::CTImageSpatialObject				  Dicom_ImageSpatialObjectType; //qinshuo add 
 
 
   typedef igstk::MeshObject                           MeshObjectType;  //Sun adds
@@ -206,7 +283,7 @@ public:
   typedef igstk::MeshResliceObjectRepresentation  MeshResliceRepresentationType;
 
   /** image reslice representation */
-  typedef igstk::ImageSliceObjectRepresentationPlus< CT_ImageSpatialObjectType >
+  typedef igstk::ImageSliceObjectRepresentationPlus< Dicom_ImageSpatialObjectType >
                                                          ImageRepresentationTypePlus;
   typedef igstk::ImageSliceObjectRepresentation< CT_ImageSpatialObjectType >
                                                          ImageRepresentationType;
@@ -327,7 +404,6 @@ public:
   /** Define observers for event communication */
  // igstkObserverObjectMacro( Image, igstk::MRImageReader::ImageModifiedEvent,
  //                                  igstk::MRImageSpatialObject );
-
   igstkObserverObjectMacro( Image, igstk::CTImageReader::ImageModifiedEvent,
                                    igstk::CTImageSpatialObject );
 
@@ -336,6 +412,9 @@ public:
   
   igstkObserverObjectMacro( MRImage, igstk::my_MRImageReader::ImageModifiedEvent,   //qinshuo add
 										igstk::MRImageSpatialObject );
+
+  igstkObserverObjectMacro( DicomImage, igstk::com_DicomImageReader::ImageModifiedEvent,                //qinshuo add
+										igstk::CTImageSpatialObject );    // make the comm_dicom image to CT Image
 
   igstkObserverMacro( Registration, igstk::CoordinateSystemTransformToEvent,
                                     igstk::CoordinateSystemTransformToResult );
@@ -408,9 +487,10 @@ private:
   igstkDeclareInputMacro( DisconnectTracker );
 
 
+
   /** DICOM image reader */
   ImageReaderType::Pointer                              m_ImageReader;
-  ImageReaderType::Pointer                              m_ImageReader_overlay;
+  DicomReaderType::Pointer                              m_ImageReader_overlay;  //modification: ImageReadType  ImageReaderType-->DicomReaderType
 
 
   /** Nifti Image reader -- qinshuo add*/
@@ -435,8 +515,11 @@ private:
 
   CT_ImageSpatialObjectType::PointType                     m_ImageCenter;
 
-  bool													m_flagImage;  //flag bool
-   
+  bool													m_flagImage;  //main image flag bool
+  bool													m_flagOverlay; //overlay image flag
+  bool													m_flagSecondImage; // qinshuo add: check status of second image
+  bool													m_flagMesh;
+
   double                                                m_WindowLevel;
   double                                                m_WindowWidth;
 
@@ -453,9 +536,9 @@ private:
   
   /** image spatial object */
   CT_ImageSpatialObjectType::Pointer                       m_ImageSpatialObject;
-  CT_ImageSpatialObjectType::Pointer                       m_OverlaySpatialObject; 
+  Dicom_ImageSpatialObjectType::Pointer                       m_OverlaySpatialObject;   //qinshuo add: modification: CT_ImageSpatialObjectType --> DicomImageSpatialObjectType
   MRI_ImageSpatialObjectType::Pointer					   m_ImageSpatialObject2;   //qinshuo add: second image object
-  bool													   m_SecondImageInitialized; // qinshuo add: check status of second image
+
 
   /** image spatial object */
   MeshObjectType::Pointer                       meshObject;  //Sun pick

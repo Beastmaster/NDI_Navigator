@@ -80,7 +80,10 @@ Navigator::Navigator() : m_StateMachine(this)
 {
   std::srand( 5 );
 
-  m_flagImage = true;
+  m_flagImage		= false;
+  m_flagSecondImage = false; // qinshuo add
+  m_flagOverlay		= false;
+  m_flagMesh		= false;
 
   m_TrackerConfiguration = NULL;
 
@@ -91,7 +94,7 @@ Navigator::Navigator() : m_StateMachine(this)
   m_SagittalViewInitialized = false;
   m_CoronalViewInitialized = false;
   m_ModifyImageFiducialsEnabled = false;  
-  m_SecondImageInitialized = false; // qinshuo add
+
 
   /* --   qinshuo  add -----*/
   State_Observer = false;
@@ -2137,10 +2140,9 @@ void Navigator::LoadImageProcessing()
 {
     igstkLogMacro2( m_Logger, DEBUG, 
                     "Navigator::LoadImageProcessing called...\n" )
-	m_flagImage = true;
 
     const char*  directoryName = 
-        fl_dir_chooser("Set DICOM directory ", m_ImageDir.c_str());
+        fl_dir_chooser("Set DICOM directory ", ImagePath_DEF);//m_ImageDir.c_str());
 
    if ( !directoryName )
    {    
@@ -2289,7 +2291,8 @@ void Navigator::LoadImageProcessing()
      return;
    }
 
-
+   //change image status
+   m_flagImage = true;
    m_StateMachine.PushInput( m_SuccessInput);
    m_StateMachine.ProcessInputs(); 
 }
@@ -2299,10 +2302,9 @@ void Navigator::LoadSecondImageProcessing()
 {
 	igstkLogMacro2( m_Logger, DEBUG, 
 		"Navigator::LoadImageProcessing called...\n" )
-		m_flagImage = true;
 
 	const char*  fileName = 
-		fl_file_chooser("Please Choose a file","*.nii",NULL);
+		fl_file_chooser("Please Choose a file",SecondImagePath_DEF,NULL);
    
 	if (fileName == NULL)
 	{
@@ -2501,7 +2503,7 @@ void Navigator::LoadSecondImageProcessing()
 		igstk::CoordinateSystemTransformToEvent(), m_SagittalViewPickerObserver );
 
 	// change second image status here
-	m_SecondImageInitialized = true;
+	m_flagSecondImage = true;
 }
 
 
@@ -2690,7 +2692,7 @@ void Navigator::LoadMeshProcessing()
 //           fl_file_chooser("Select the target mesh file","*.msh","");
 
 // Create the file chooser, and show it
-    Fl_File_Chooser chooser(".",                        // directory
+    Fl_File_Chooser chooser(MeshPath_DEF,                        // directory
                             "*.msh",                        // filter
                             Fl_File_Chooser::MULTI,     // chooser type
                             "Mesh Of Chooser");        // title
@@ -2707,9 +2709,10 @@ void Navigator::LoadMeshProcessing()
  //  {
  //    m_ImageDir = m_ImageDir.substr (0,m_ImageDir.length()-1);
  //  }
-  for ( int t=1; t<=chooser.count(); t++ ) {
+  for ( int t=1; t<=chooser.count(); t++ ) 
+  {
     const char *fileName = chooser.value(t);
-   if ( !fileName )
+    if ( !fileName )
     {
      igstkLogMacro2( m_Logger, DEBUG, 
                    "Navigator::LoadMeshProcessing No directory was selected\n" )
@@ -2719,114 +2722,116 @@ void Navigator::LoadMeshProcessing()
     }
 
    // setup a mesh reader
-   MeshReaderType::Pointer reader = MeshReaderType::New();
-   reader->RequestSetFileName( fileName );
-
-   reader->RequestReadObject();
- 
-   MeshObjectObserver::Pointer observer = MeshObjectObserver::New();
-
-   reader->AddObserver( igstk::MeshReader::MeshModifiedEvent(), observer);
-
-   reader->RequestGetOutput();
-
-   if( !observer->GotMeshObject() )
-   {
+     MeshReaderType::Pointer reader = MeshReaderType::New();
+     reader->RequestSetFileName( fileName );
+     
+     reader->RequestReadObject();
+     
+     MeshObjectObserver::Pointer observer = MeshObjectObserver::New();
+     
+     reader->AddObserver( igstk::MeshReader::MeshModifiedEvent(), observer);
+     
+     reader->RequestGetOutput();
+     
+     if( !observer->GotMeshObject() )
+     {
+         igstkLogMacro2( m_Logger, DEBUG, 
+                       "Navigator::LoadMeshProcessing Could not read the mesh\n" )
+         m_StateMachine.PushInput( m_FailureInput);
+         m_StateMachine.ProcessInputs();
+         return;
+     }
+     
+     // get the mesh spatial object
+     MeshType::Pointer meshSpatialObject = observer->GetMeshObject();
+     
+     if (meshSpatialObject.IsNull())
+     {
        igstkLogMacro2( m_Logger, DEBUG, 
-                     "Navigator::LoadMeshProcessing Could not read the mesh\n" )
+                   "Navigator::LoadMeshProcessing Could not retrieve the mesh\n" )
        m_StateMachine.PushInput( m_FailureInput);
        m_StateMachine.ProcessInputs();
        return;
-   }
+     }
 
-   // get the mesh spatial object
-   MeshType::Pointer meshSpatialObject = observer->GetMeshObject();
-
-   if (meshSpatialObject.IsNull())
-   {
-     igstkLogMacro2( m_Logger, DEBUG, 
-                 "Navigator::LoadMeshProcessing Could not retrieve the mesh\n" )
-     m_StateMachine.PushInput( m_FailureInput);
-     m_StateMachine.ProcessInputs();
-     return;
-   }
-
-   // set transform and parent to the mesh spatial object
-   igstk::Transform identity;
-   identity.SetToIdentity( igstk::TimeStamp::GetLongestPossibleTime() );
-   meshSpatialObject->RequestSetTransformAndParent( identity, m_WorldReference);
-   
-   // set a random color
-   double r = ( ( ( double ) ( std::rand( ) ) ) / ( ( double ) ( RAND_MAX ) ) );
-   double g = ( ( ( double ) ( std::rand( ) ) ) / ( ( double ) ( RAND_MAX ) ) );
-   double b = ( ( ( double ) ( std::rand( ) ) ) / ( ( double ) ( RAND_MAX ) ) );
-
-   // setup a mesh representation
-   meshRepresentation = MeshRepresentationType::New();
-   meshRepresentation->RequestSetMeshObject( meshSpatialObject );
-   meshRepresentation->SetOpacity(1);
-   meshRepresentation->SetColor(r, g, b);
-   m_MeshRepresentationVector.push_back( meshRepresentation );
-
-   // build axial mesh reslice representation
-   axialContour = MeshResliceRepresentationType::New();
-   axialContour->SetOpacity(1);
-   axialContour->SetLineWidth(2);
-   axialContour->SetColor(r, g, b);     
-   axialContour->RequestSetMeshObject( meshSpatialObject );
-   axialContour->RequestSetReslicePlaneSpatialObject( m_AxialPlaneSpatialObject );   
-
-   // build sagittal mesh reslice representation
-   sagittalContour = MeshResliceRepresentationType::New();
-   sagittalContour->SetOpacity(1);
-   sagittalContour->SetLineWidth(2);
-   sagittalContour->SetColor(r, g, b);
-   sagittalContour->RequestSetMeshObject( meshSpatialObject );
-   sagittalContour->RequestSetReslicePlaneSpatialObject( 
-                                                 m_SagittalPlaneSpatialObject );
-   
-   // build coronal mesh reslice representation
-   coronalContour = MeshResliceRepresentationType::New();
-   coronalContour->SetOpacity(1);
-   coronalContour->SetLineWidth(2);
-   coronalContour->SetColor(r, g, b);
-   coronalContour->RequestSetMeshObject( meshSpatialObject );
-   coronalContour->RequestSetReslicePlaneSpatialObject( 
-                                                  m_CoronalPlaneSpatialObject );
-
-
-   meshRepresentation = MeshRepresentationType::New();
-   meshRepresentation->RequestSetMeshObject( meshSpatialObject );
-   meshRepresentation->SetOpacity(1);
-   meshRepresentation->SetColor(0.0, 0.0, 1.0);
-   m_MeshRepresentationVector.push_back( meshRepresentation );
-      
-   // add repressentations to the views
-   m_ViewerGroup->m_AxialView->RequestAddObject( axialContour );
-   m_ViewerGroup->m_SagittalView->RequestAddObject( sagittalContour );
-   m_ViewerGroup->m_CoronalView->RequestAddObject( coronalContour );     
-   m_ViewerGroup->m_3DView->RequestAddObject( meshRepresentation );
-   m_ViewerGroup->m_3DView->RequestResetCamera();
-
-   // keep the mesh and contours in corresponding vectors
-   m_MeshVector.push_back( meshSpatialObject );
-   m_AxialMeshResliceRepresentationVector.push_back( axialContour );
-   m_SagittalMeshResliceRepresentationVector.push_back( sagittalContour );
-   m_CoronalMeshResliceRepresentationVector.push_back( coronalContour );  
-
-   // reset the cameras in the different views
-   m_ViewerGroup->m_AxialView->RequestResetCamera();
-   m_ViewerGroup->m_SagittalView->RequestResetCamera();
-   m_ViewerGroup->m_CoronalView->RequestResetCamera();
-   m_ViewerGroup->m_3DView->RequestResetCamera();
-
-   m_SegmentationOpacitySlider->activate();
+	 //change mesh status
+	 m_flagMesh = true;
+     
+     // set transform and parent to the mesh spatial object
+     igstk::Transform identity;
+     identity.SetToIdentity( igstk::TimeStamp::GetLongestPossibleTime() );
+     meshSpatialObject->RequestSetTransformAndParent( identity, m_WorldReference);
+     
+     // set a random color
+     double r = ( ( ( double ) ( std::rand( ) ) ) / ( ( double ) ( RAND_MAX ) ) );
+     double g = ( ( ( double ) ( std::rand( ) ) ) / ( ( double ) ( RAND_MAX ) ) );
+     double b = ( ( ( double ) ( std::rand( ) ) ) / ( ( double ) ( RAND_MAX ) ) );
+     
+     // setup a mesh representation
+     meshRepresentation = MeshRepresentationType::New();
+     meshRepresentation->RequestSetMeshObject( meshSpatialObject );
+     meshRepresentation->SetOpacity(1);
+     meshRepresentation->SetColor(r, g, b);
+     m_MeshRepresentationVector.push_back( meshRepresentation );
+     
+     // build axial mesh reslice representation
+     axialContour = MeshResliceRepresentationType::New();
+     axialContour->SetOpacity(1);
+     axialContour->SetLineWidth(2);
+     axialContour->SetColor(r, g, b);     
+     axialContour->RequestSetMeshObject( meshSpatialObject );
+     axialContour->RequestSetReslicePlaneSpatialObject( m_AxialPlaneSpatialObject );   
+     
+     // build sagittal mesh reslice representation
+     sagittalContour = MeshResliceRepresentationType::New();
+     sagittalContour->SetOpacity(1);
+     sagittalContour->SetLineWidth(2);
+     sagittalContour->SetColor(r, g, b);
+     sagittalContour->RequestSetMeshObject( meshSpatialObject );
+     sagittalContour->RequestSetReslicePlaneSpatialObject( 
+                                                   m_SagittalPlaneSpatialObject );
+     
+     // build coronal mesh reslice representation
+     coronalContour = MeshResliceRepresentationType::New();
+     coronalContour->SetOpacity(1);
+     coronalContour->SetLineWidth(2);
+     coronalContour->SetColor(r, g, b);
+     coronalContour->RequestSetMeshObject( meshSpatialObject );
+     coronalContour->RequestSetReslicePlaneSpatialObject( 
+                                                    m_CoronalPlaneSpatialObject );
+     
+     
+     meshRepresentation = MeshRepresentationType::New();
+     meshRepresentation->RequestSetMeshObject( meshSpatialObject );
+     meshRepresentation->SetOpacity(1);
+     meshRepresentation->SetColor(0.0, 0.0, 1.0);
+     m_MeshRepresentationVector.push_back( meshRepresentation );
+        
+     // add repressentations to the views
+     m_ViewerGroup->m_AxialView->RequestAddObject( axialContour );
+     m_ViewerGroup->m_SagittalView->RequestAddObject( sagittalContour );
+     m_ViewerGroup->m_CoronalView->RequestAddObject( coronalContour );     
+     m_ViewerGroup->m_3DView->RequestAddObject( meshRepresentation );
+     m_ViewerGroup->m_3DView->RequestResetCamera();
+     
+     // keep the mesh and contours in corresponding vectors
+     m_MeshVector.push_back( meshSpatialObject );
+     m_AxialMeshResliceRepresentationVector.push_back( axialContour );
+     m_SagittalMeshResliceRepresentationVector.push_back( sagittalContour );
+     m_CoronalMeshResliceRepresentationVector.push_back( coronalContour );  
+     
+     // reset the cameras in the different views
+     m_ViewerGroup->m_AxialView->RequestResetCamera();
+     m_ViewerGroup->m_SagittalView->RequestResetCamera();
+     m_ViewerGroup->m_CoronalView->RequestResetCamera();
+     m_ViewerGroup->m_3DView->RequestResetCamera();
+     
+     m_SegmentationOpacitySlider->activate();
  }
 
    m_StateMachine.PushInput( m_SuccessInput );
    m_StateMachine.ProcessInputs();   
-  
-  
+	
 }
 
 /** -----------------------------------------------------------------
@@ -2838,9 +2843,8 @@ void Navigator::LoadOverlayProcessing()
 
 igstkLogMacro2( m_Logger, DEBUG, 
                     "Navigator::LoadOverlayProcessing called...\n" )
-	m_flagImage = false;
     const char*  directoryName = 
-        fl_dir_chooser("Set atlas directory ", m_ImageDir.c_str());
+        fl_dir_chooser("Set atlas directory ", OverlayPath_DEF);//m_ImageDir.c_str());
 
    if ( !directoryName )
    {    
@@ -2862,7 +2866,7 @@ igstkLogMacro2( m_Logger, DEBUG,
                       "Set ImageReader directory: " << directoryName << "\n" )
 
    /** Setup image reader  */  
-   m_ImageReader_overlay      =   ImageReaderType::New();
+   m_ImageReader_overlay      =   DicomReaderType::New();
 
  //  Image = DeepCopy(m_ImageReader);
    m_ImageReader_overlay->SetLogger( this->GetLogger() );
@@ -2966,27 +2970,27 @@ igstkLogMacro2( m_Logger, DEBUG,
    m_ImageReader_overlay->RequestReadImage();
 
    m_ImageObserver_overlay = ImageObserver::New();
-   m_ImageReader_overlay->AddObserver(ImageReaderType::ImageModifiedEvent(),
+   m_ImageReader_overlay->AddObserver(DicomReaderType::ImageModifiedEvent(),
                                                     m_ImageObserver_overlay);
 
    m_ImageReader_overlay->RequestGetImage();
 
-  /** if(!m_ImageObserver1->GotImage())
+   
+   if(!m_ImageObserver_overlay->GotImage())
    { 
      std::string errorMessage;
      errorMessage = "Could not open image";
    //  fl_alert( "%s\n", errorMessage.c_str() );
    //  fl_beep( FL_BEEP_ERROR );
 
-     m_ImageObserver->RemoveAllObservers();
-     m_ImageObserver = NULL;
+   //  m_ImageObserver->RemoveAllObservers();
+   //  m_ImageObserver = NULL;
 
      igstkLogMacro2( m_Logger, DEBUG, "Could not read image\n" )
      m_StateMachine.PushInput( m_FailureInput);
      m_StateMachine.ProcessInputs();
-
      return;
-   }**/
+   }
 
 
    if ( m_ImageObserver_overlay.IsNotNull() )
@@ -3052,9 +3056,12 @@ igstkLogMacro2( m_Logger, DEBUG,
     m_ViewerGroup->m_CoronalView->RequestResetCamera();
 	m_ViewerGroup->m_3DView->RequestResetCamera(); 
 
-   m_StateMachine.PushInput( m_SuccessInput);
-   m_StateMachine.ProcessInputs(); 
-  
+	m_StateMachine.PushInput( m_SuccessInput);
+	m_StateMachine.ProcessInputs(); 
+
+	//change overlay image status
+	m_flagOverlay = true;
+
 }
 
 /** -----------------------------------------------------------------
@@ -3069,120 +3076,121 @@ void Navigator::SetImagePickingProcessing()
   CT_ImageSpatialObjectType::PointType point = TransformToPoint( 
                                                            m_PickingTransform );
 
-  if(m_flagImage == true){
-
-  if ( m_ImageSpatialObject->IsInside( point ) )
-    {
-    CT_ImageSpatialObjectType::IndexType index;
-    m_ImageSpatialObject->TransformPhysicalPointToIndex( point, index);
-
-    const double *data = point.GetVnlVector().data_block();
-
-    m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
-    m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
-    m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
-
-	//---- qinshuo add ---//
-	if (m_SecondImageInitialized)
+  if(m_flagImage == true)
+  {
+	if ( m_ImageSpatialObject->IsInside( point ) )
 	{
-		m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
-		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
-	}
+		CT_ImageSpatialObjectType::IndexType index;
+		m_ImageSpatialObject->TransformPhysicalPointToIndex( point, index);
 
-    m_CrossHair->RequestSetCursorPosition( data );
-    this->ResliceImage( index );
-    }
-  else
-    {
-    igstkLogMacro( DEBUG,  "Picked point outside image...\n" )
-    }
-    
+		const double *data = point.GetVnlVector().data_block();
+
+		m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
+		m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
+		m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
+
+		//---- qinshuo add ---//
+		if (m_flagSecondImage)
+		{
+			m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
+			m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
+		}
+
+
+		m_CrossHair->RequestSetCursorPosition( data );
+		this->ResliceImage( index );
+	}
+	else
+	{
+		igstkLogMacro( DEBUG,  "Picked point outside image...\n" )
+	}
   }
   else
   {	  
    m_flagImage = false;
   if ( m_OverlaySpatialObject->IsInside( point ) )
     {
-    CT_ImageSpatialObjectType::IndexType index;
-    m_OverlaySpatialObject->TransformPhysicalPointToIndex( point, index);
+		Dicom_ImageSpatialObjectType::IndexType index;
+		m_OverlaySpatialObject->TransformPhysicalPointToIndex( point, index);
 
-    const double *data = point.GetVnlVector().data_block();
+		const double *data = point.GetVnlVector().data_block();
 
-    m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
-    m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
-    m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
-	//---- qinshuo add ---//
-	m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
-	m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
+		m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
+		m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
+		m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
+		//---- qinshuo add ---//
+		m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
+		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
 
-    m_CrossHair->RequestSetCursorPosition( data );
-    this->ResliceImage( index );
+		m_CrossHair->RequestSetCursorPosition( data );
+		this->ResliceImage( index );
 
-	m_VTKImageObserver = VTKImageObserver::New();
+		m_VTKImageObserver = VTKImageObserver::New();
 	
-	m_OverlaySpatialObject->AddObserver( igstk::VTKImageModifiedEvent(), 
-                                     m_VTKImageObserver );
+		m_OverlaySpatialObject->AddObserver( igstk::VTKImageModifiedEvent(), 
+										 m_VTKImageObserver );
 
-	m_VTKImageObserver->Reset();
-	m_OverlaySpatialObject->RequestGetVTKImage();
+		m_VTKImageObserver->Reset();
+		m_OverlaySpatialObject->RequestGetVTKImage();
 
-	if( m_VTKImageObserver->GotVTKImage() )
-    {
+		if( m_VTKImageObserver->GotVTKImage() )
+		{
 
-		   m_ImageData = m_VTKImageObserver->GetVTKImage();
+			   m_ImageData = m_VTKImageObserver->GetVTKImage();
     
-    }
+		}
 
-	/** Update annotation */
-	  char buf[100];
-	  int voxel; 
-	  voxel = int (m_ImageData->GetScalarComponentAsDouble(index[0],index[1],index[2],0)); //point[0], point[1], point[2])
+		/** Update annotation */
+		  char buf[100];
+		  int voxel; 
+		  voxel = int (m_ImageData->GetScalarComponentAsDouble(index[0],index[1],index[2],0)); //point[0], point[1], point[2])
 	  
-	  std::string   MappingFileName;
-      MappingFileName = m_ImageDir + "/label.txt";
-      m_MappingFile.open( MappingFileName.c_str());
+		  std::string   MappingFileName;
+		  MappingFileName = m_ImageDir + "/label.txt";
+		  m_MappingFile.open( MappingFileName.c_str());
 
-     if( m_MappingFile.fail() )
-     {
-       //Return if fail to open the log file
-       igstkLogMacro2( m_Logger, DEBUG, "Problem opening LabelMapping file:" << MappingFileName << "\n" );
-       return;
-	 }
+		 if( m_MappingFile.fail() )
+		 {
+		   //Return if fail to open the log file
+		   igstkLogMacro2( m_Logger, DEBUG, "Problem opening LabelMapping file:" << MappingFileName << "\n" );
+		   return;
+		 }
 	 
-	 std::map<int,std::string> LabelMap;
-	 int key;
-	 std::string label;
-	 while (m_MappingFile >> key >> label) LabelMap[key]=label;
+		 std::map<int,std::string> LabelMap;
+		 int key;
+		 std::string label;
+		 while (m_MappingFile >> key >> label) LabelMap[key]=label;
 	 
-	 m_MappingFile.close();
+		 m_MappingFile.close();
 
-     std::map<int,std::string>::iterator iter = LabelMap.find(voxel);
+		 std::map<int,std::string>::iterator iter = LabelMap.find(voxel);
 
-	 if(iter != LabelMap.end()){
+		 if(iter != LabelMap.end())
+		 {
 	      
-		 sprintf(buf,"%s",iter->second.c_str());
-	 }
-	 else{
+			 sprintf(buf,"%s",iter->second.c_str());
+		 }
+		 else{
 		 
-		 sprintf(buf,"%s","No Label");
-	 }
-      m_ViewerGroup->m_AxialViewAnnotation->RequestSetAnnotationText( 0, buf );
-      m_ViewerGroup->m_AxialViewAnnotation->RequestSetFontColor(0, 0.0, 0.0, 1);
+			 sprintf(buf,"%s","No Label");
+		 }
+		  m_ViewerGroup->m_AxialViewAnnotation->RequestSetAnnotationText( 0, buf );
+		  m_ViewerGroup->m_AxialViewAnnotation->RequestSetFontColor(0, 0.0, 0.0, 1);
 
-      m_ViewerGroup->m_SagittalViewAnnotation->RequestSetAnnotationText( 0,buf);
-      m_ViewerGroup->m_SagittalViewAnnotation->RequestSetFontColor(0, 0, 0, 1);
+		  m_ViewerGroup->m_SagittalViewAnnotation->RequestSetAnnotationText( 0,buf);
+		  m_ViewerGroup->m_SagittalViewAnnotation->RequestSetFontColor(0, 0, 0, 1);
 
-      m_ViewerGroup->m_CoronalViewAnnotation->RequestSetAnnotationText( 0, buf);
-      m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(0, 0.0, 0, 1);
+		  m_ViewerGroup->m_CoronalViewAnnotation->RequestSetAnnotationText( 0, buf);
+		  m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(0, 0.0, 0, 1);
 
-	  //---   qinshuo add   ---//
-	  m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText(0,buf);
-	  m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(0,0.0,0,1);
-	  m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText(0,buf);
-	  m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(0,0.0,0,1);
-	  //---   qinshuo add  ---//
+		  //---   qinshuo add   ---//
+		  m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText(0,buf);
+		  m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(0,0.0,0,1);
+		  m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText(0,buf);
+		  m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(0,0.0,0,1);
+		  //---   qinshuo add  ---//
 
-      m_ViewerGroup->RequestUpdateOverlays();
+		  m_ViewerGroup->RequestUpdateOverlays();
 
     }
   else
@@ -4003,6 +4011,7 @@ void Navigator::ConnectImageRepresentation()
                                                 m_SagittalPlaneRepresentation );
   m_ViewerGroup->m_CoronalView->RequestAddObject( 
                                                  m_CoronalPlaneRepresentation );
+  // -- enable 3d reconstruction in this line --//
   //m_ViewerGroup->m_3DView->RequestAddObject(m_ImageRepresentation3D);
 
 
