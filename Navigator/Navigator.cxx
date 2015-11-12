@@ -2993,12 +2993,13 @@ igstkLogMacro2( m_Logger, DEBUG,
    }
 
 
-   if ( m_ImageObserver_overlay.IsNotNull() )
+  if ( m_ImageObserver_overlay.IsNotNull() )
   {
     m_OverlaySpatialObject = m_ImageObserver_overlay->GetImage(); 
-	//m_ImageSpatialObject->RequestDetachFromParent();
+
 	igstk::Transform identity;
  	identity.SetToIdentity( igstk::TimeStamp::GetLongestPossibleTime() );
+
     m_OverlaySpatialObject->RequestSetTransformAndParent( identity, m_WorldReference );
   //  m_ImageSpatialObject1->RequestDetachFromParent();
   //  m_ImageSpatialObject1->RequestSetTransformAndParent( m_RegistrationTransform, m_ImageSpatialObject );
@@ -3007,6 +3008,25 @@ igstkLogMacro2( m_Logger, DEBUG,
     m_StateMachine.PushInputBoolean( m_ImageReader_overlay->FileSuccessfullyRead(), 
                                      m_SuccessInput, m_FailureInput);
   } 
+
+  //--- create color overly label here
+	m_VTKImageObserver = VTKImageObserver::New();
+	
+	m_OverlaySpatialObject->AddObserver( igstk::VTKImageModifiedEvent(), 
+	 m_VTKImageObserver );
+	
+	m_VTKImageObserver->Reset();
+	m_OverlaySpatialObject->RequestGetVTKImage();
+	
+	if( m_VTKImageObserver->GotVTKImage() )
+	{
+	
+	 m_ImageData = m_VTKImageObserver->GetVTKImage();
+	
+	}
+	
+
+	
 
   // build axial reslice representation
     m_AxialOverlayPlaneRepresentation = ImageRepresentationTypePlus::New();
@@ -3023,38 +3043,25 @@ igstkLogMacro2( m_Logger, DEBUG,
    //build coronal reslice representation
 	m_CoronalOverlayPlaneRepresentation = ImageRepresentationTypePlus::New();
     m_CoronalOverlayPlaneRepresentation->RequestSetImageSpatialObject(m_OverlaySpatialObject);
-//	m_CoronalOverlayPlaneRepresentation->RequestSetFGImageSO(m_ImageSpatialObject1);
 	m_CoronalOverlayPlaneRepresentation->RequestSetReslicePlaneSpatialObject( m_CoronalPlaneSpatialObject );
 
    // add repressentations to the views
-//	m_ViewerGroup->m_AxialView->RequestAddObject(m_AxialPlaneRepresentation);
-//  m_ViewerGroup->m_AxialView->RequestRemoveObject( m_AxialOverlayPlaneRepresentation );
     m_ViewerGroup->m_AxialView->RequestAddObject( m_AxialOverlayPlaneRepresentation );
-
-//	m_ViewerGroup->m_SagittalView->RequestRemoveObject(m_SagittalPlaneRepresentation);
-//    m_ViewerGroup->m_SagittalView->RequestRemoveObject( m_SagittalOverlayPlaneRepresentation );
-     m_ViewerGroup->m_SagittalView->RequestAddObject( m_SagittalOverlayPlaneRepresentation );
-
-//	m_ViewerGroup->m_CoronalView->RequestRemoveObject(m_CoronalPlaneRepresentation);
- //   m_ViewerGroup->m_CoronalView->RequestRemoveObject(m_CoronalOverlayPlaneRepresentation );
+    m_ViewerGroup->m_SagittalView->RequestAddObject( m_SagittalOverlayPlaneRepresentation );
     m_ViewerGroup->m_CoronalView->RequestAddObject( m_CoronalOverlayPlaneRepresentation );
 
-//	m_ViewerGroup->m_3DView->RequestAddObject( m_AxialOverlayPlaneRepresentation->Copy() );
-//	m_ViewerGroup->m_3DView->RequestAddObject( m_SagittalOverlayPlaneRepresentation->Copy() );
-//	m_ViewerGroup->m_3DView->RequestAddObject( m_CoronalOverlayPlaneRepresentation->Copy() );
-//	m_ViewerGroup->m_3DView->RequestResetCamera();
-
 	m_ImageSurface3D = SurfaceRepresentationType::New();
-    m_ImageSurface3D ->RequestSetImageSpatialObject( 
-                                                         m_OverlaySpatialObject );  //3D rendering
+    m_ImageSurface3D ->RequestSetImageSpatialObject(  m_OverlaySpatialObject );  //3D rendering
 	m_ViewerGroup->m_3DView->RequestAddObject( m_ImageSurface3D );
 	m_ViewerGroup->m_3DView->RequestResetCamera();
 
-  // reset the cameras in the different views
+    // reset the cameras in the different views
     m_ViewerGroup->m_AxialView->RequestResetCamera();
     m_ViewerGroup->m_SagittalView->RequestResetCamera();
     m_ViewerGroup->m_CoronalView->RequestResetCamera();
 	m_ViewerGroup->m_3DView->RequestResetCamera(); 
+
+	m_ViewerGroup->RequestUpdateOverlays();
 
 	m_StateMachine.PushInput( m_SuccessInput);
 	m_StateMachine.ProcessInputs(); 
@@ -3078,140 +3085,81 @@ void Navigator::SetImagePickingProcessing()
 
   if(m_flagImage == true)
   {
-	if ( m_ImageSpatialObject->IsInside( point ) )
-	{
-		CT_ImageSpatialObjectType::IndexType index;
-		m_ImageSpatialObject->TransformPhysicalPointToIndex( point, index);
-
-		const double *data = point.GetVnlVector().data_block();
-
-		m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
-		m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
-		m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
-
-		//---- qinshuo add ---//
-		if (m_flagSecondImage)
-		{
-			m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
-			m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
-		}
-
-
-		m_CrossHair->RequestSetCursorPosition( data );
-		this->ResliceImage( index );
-	}
+	    if ( m_ImageSpatialObject->IsInside( point ) )
+	    {
+	    	CT_ImageSpatialObjectType::IndexType index;
+	    	m_ImageSpatialObject->TransformPhysicalPointToIndex( point, index);
+	    
+	    	const double *data = point.GetVnlVector().data_block();
+	    
+	    	m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
+	    	m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
+	    	m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
+	    	m_CrossHair->RequestSetCursorPosition( data );
+	    	//---- qinshuo add ---//
+	    	if (m_flagSecondImage)
+	    	{
+	    		m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
+	    		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
+	    	}
+	    
+	    	if (m_flagOverlay)
+	    	{
+	    		if ( m_OverlaySpatialObject->IsInside( point ) )
+	    		{
+	    			Dicom_ImageSpatialObjectType::IndexType index;
+	    			m_OverlaySpatialObject->TransformPhysicalPointToIndex( point, index);
+	    
+	    
+	    			/** Update annotation */
+	    			char buf[100];
+	    			int voxel; 
+	    			voxel = int (m_ImageData->GetScalarComponentAsDouble(index[0],index[1],index[2],0)); //point[0], point[1], point[2])
+	    
+	    			std::string   MappingFileName;
+	    			MappingFileName = m_ImageDir + "/label.txt";
+	    			m_MappingFile.open( MappingFileName.c_str());
+	    
+	    			if( m_MappingFile.fail() )
+	    			{
+	    				//Return if fail to open the log file
+	    				igstkLogMacro2( m_Logger, DEBUG, "Problem opening LabelMapping file:" << MappingFileName << "\n" );
+	    				return;
+	    			}
+	    
+	    			std::map<int,std::string> LabelMap;
+	    			int key;
+	    			std::string label;
+	    			while (m_MappingFile >> key >> label) LabelMap[key]=label;
+	    
+	    			m_MappingFile.close();
+	    
+	    			std::map<int,std::string>::iterator iter = LabelMap.find(voxel);
+	    
+	    			if(iter != LabelMap.end())					sprintf(buf,"%s",iter->second.c_str());
+	    			else										sprintf(buf,"%s","No Label");
+	    		
+	    			m_ViewerGroup->m_AxialViewAnnotation->RequestSetAnnotationText( 0, buf );
+	    			m_ViewerGroup->m_AxialViewAnnotation->RequestSetFontColor(0, 0.0, 0.0, 1);
+	    
+	    			m_ViewerGroup->m_SagittalViewAnnotation->RequestSetAnnotationText( 0,buf);
+	    			m_ViewerGroup->m_SagittalViewAnnotation->RequestSetFontColor(0, 0, 0, 1);
+	    
+	    			m_ViewerGroup->m_CoronalViewAnnotation->RequestSetAnnotationText( 0, buf);
+	    			m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(0, 0.0, 0, 1);
+	    		}
+	    		else
+	    		{
+	    			igstkLogMacro( DEBUG,  "Picked point outside image...\n" )
+	    		}
+	    	}
+	    	this->ResliceImage( index );
+	    }
 	else
 	{
 		igstkLogMacro( DEBUG,  "Picked point outside image...\n" )
 	}
   }
-  else
-  {	  
-   m_flagImage = false;
-  if ( m_OverlaySpatialObject->IsInside( point ) )
-    {
-		Dicom_ImageSpatialObjectType::IndexType index;
-		m_OverlaySpatialObject->TransformPhysicalPointToIndex( point, index);
-
-		const double *data = point.GetVnlVector().data_block();
-
-		m_AxialPlaneSpatialObject->RequestSetCursorPosition( data );
-		m_SagittalPlaneSpatialObject->RequestSetCursorPosition( data );
-		m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
-		//---- qinshuo add ---//
-		m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
-		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
-
-		m_CrossHair->RequestSetCursorPosition( data );
-		this->ResliceImage( index );
-
-		m_VTKImageObserver = VTKImageObserver::New();
-	
-		m_OverlaySpatialObject->AddObserver( igstk::VTKImageModifiedEvent(), 
-										 m_VTKImageObserver );
-
-		m_VTKImageObserver->Reset();
-		m_OverlaySpatialObject->RequestGetVTKImage();
-
-		if( m_VTKImageObserver->GotVTKImage() )
-		{
-
-			   m_ImageData = m_VTKImageObserver->GetVTKImage();
-    
-		}
-
-		/** Update annotation */
-		  char buf[100];
-		  int voxel; 
-		  voxel = int (m_ImageData->GetScalarComponentAsDouble(index[0],index[1],index[2],0)); //point[0], point[1], point[2])
-	  
-		  std::string   MappingFileName;
-		  MappingFileName = m_ImageDir + "/label.txt";
-		  m_MappingFile.open( MappingFileName.c_str());
-
-		 if( m_MappingFile.fail() )
-		 {
-		   //Return if fail to open the log file
-		   igstkLogMacro2( m_Logger, DEBUG, "Problem opening LabelMapping file:" << MappingFileName << "\n" );
-		   return;
-		 }
-	 
-		 std::map<int,std::string> LabelMap;
-		 int key;
-		 std::string label;
-		 while (m_MappingFile >> key >> label) LabelMap[key]=label;
-	 
-		 m_MappingFile.close();
-
-		 std::map<int,std::string>::iterator iter = LabelMap.find(voxel);
-
-		 if(iter != LabelMap.end())
-		 {
-	      
-			 sprintf(buf,"%s",iter->second.c_str());
-		 }
-		 else{
-		 
-			 sprintf(buf,"%s","No Label");
-		 }
-		  m_ViewerGroup->m_AxialViewAnnotation->RequestSetAnnotationText( 0, buf );
-		  m_ViewerGroup->m_AxialViewAnnotation->RequestSetFontColor(0, 0.0, 0.0, 1);
-
-		  m_ViewerGroup->m_SagittalViewAnnotation->RequestSetAnnotationText( 0,buf);
-		  m_ViewerGroup->m_SagittalViewAnnotation->RequestSetFontColor(0, 0, 0, 1);
-
-		  m_ViewerGroup->m_CoronalViewAnnotation->RequestSetAnnotationText( 0, buf);
-		  m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(0, 0.0, 0, 1);
-
-		  //---   qinshuo add   ---//
-		  m_ViewerGroup->new_AxialViewAnnotation->RequestSetAnnotationText(0,buf);
-		  m_ViewerGroup->new_AxialViewAnnotation->RequestSetFontColor(0,0.0,0,1);
-		  m_ViewerGroup->new_SagittalViewAnnotation->RequestSetAnnotationText(0,buf);
-		  m_ViewerGroup->new_SagittalViewAnnotation->RequestSetFontColor(0,0.0,0,1);
-		  //---   qinshuo add  ---//
-
-		  m_ViewerGroup->RequestUpdateOverlays();
-
-    }
-  else
-    {
-    igstkLogMacro( DEBUG,  "Picked point outside image...\n" )
-    }
-  }
-
-      //sprintf( buf, "(%d)", voxel);
-	 // sprintf( buf, "[%.2f, %.2f, %.2f]", point[0], point[1], point[2]);
-	//  sprintf( buf, "[%d, %d, %d]", index[2],index[0],index[1]);
-/**      m_ViewerGroup->m_AxialViewAnnotation->RequestSetAnnotationText( 0, buf );
-      m_ViewerGroup->m_AxialViewAnnotation->RequestSetFontColor(0, 0.0, 0.0, 1);
-
-      m_ViewerGroup->m_SagittalViewAnnotation->RequestSetAnnotationText( 0,buf);
-      m_ViewerGroup->m_SagittalViewAnnotation->RequestSetFontColor(0, 0, 0, 1);
-
-      m_ViewerGroup->m_CoronalViewAnnotation->RequestSetAnnotationText( 0, buf);
-      m_ViewerGroup->m_CoronalViewAnnotation->RequestSetFontColor(0, 0.0, 0, 1);
-
-      m_ViewerGroup->RequestUpdateOverlays();**/
 }
 
 /** -----------------------------------------------------------------
