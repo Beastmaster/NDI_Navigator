@@ -1,17 +1,17 @@
 /*=========================================================================
 
-  Program:   Image Guided Surgery Software Toolkit
-  Module:    Navigator.h
-  Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
-
-  Copyright (c) ISC  Insight Software Consortium.  All rights reserved.
-  See IGSTKCopyright.txt or http://www.igstk.org/copyright.htm for details.
-
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
+  Program:				Surgical Navigation System
+  Organization:			RC-MIC (CUHK)
+  File Name:			Navigator.h
+  Language:				C++
+  Lasted Updated:       2015/11/12
+  Version:				2.0
+  CopyRight    Research Center of Medical Imaging Center 
+				(Chinese University of HongKong)   All Rights Reserved
+		Please be noted that: this program is knowledge property of 
+		RC-MIC(CUHK). You can contact the author or our office to 
+		access more information. This program is for research purpose 
+		and we take no responsibility for its consequences. 
 
 =========================================================================*/
 #ifndef __Navigator_h
