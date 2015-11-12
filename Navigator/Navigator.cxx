@@ -1273,9 +1273,9 @@ void Navigator::ConfigureTrackerProcessing()
   igstkLogMacro2( m_Logger, DEBUG, 
              "BronchoscopyNavigator::ConfigureTrackerProcessing called...\n" )
  
-  const char*  fileName = "C:\\Users\\Administrator\\Desktop\\DATA\\vicraConfiguration.xml";
- // const char*  fileName =
-  //    fl_file_chooser("Select a tracker configuration file","*.xml", 
+  //const char*  fileName = VicraConfigurationFile_DEF;
+  const char*  fileName =
+      fl_file_chooser("Select a tracker configuration file","*.xml","");
   //                                                   "auroraConfiguration.xml");
 
   if ( fileName == NULL )
@@ -2626,7 +2626,7 @@ void Navigator::LoadToolSpatialObjectProcessing()
  //  const char*  fileName = 
    //    fl_file_chooser("Chose a tool spatial object mesh", "*.msh", "");
 
-   const char* fileName = "C:/Users/Administrator/Desktop/DATA/TrackerToolRepresentationMeshes/sProbe.msh";
+   const char* fileName = ToolSpatial_DEF;
 
    if ( !fileName )
     {
