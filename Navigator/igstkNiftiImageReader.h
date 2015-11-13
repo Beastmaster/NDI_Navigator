@@ -1,17 +1,19 @@
 /*=========================================================================
 
-  Program:   Image Guided Surgery Software Toolkit
+  Program:   Surgical Navigation System
   Module:    igstkNiftiImageReader.h
   Language:  C++
-  Date:      $Date$
-  Version:   $Revision$
+  Date:      2015/8/6
+  Version:   1.0
+  Description: This module is for Analyze image reader, modified by Qin Shuo
 
-  Copyright (c) ISC  Insight Software Consortium.  All rights reserved.
-  See IGSTKCopyright.txt or http://www.igstk.org/copyright.htm for details.
 
-     This software is distributed WITHOUT ANY WARRANTY; without even
-     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-     PURPOSE.  See the above copyright notices for more information.
+  CopyRight    Research Center of Medical Imaging Center 
+	(Chinese University of HongKong)   All Rights Reserved
+	Please be noted that: this program is knowledge property of 
+	RC-MIC(CUHK). You can contact the author or our office to 
+	access more information. This program is for research purpose 
+	and we take no responsibility for its consequences. 
 
 =========================================================================*/
 #ifndef __igstkNiftiImageReader_h
