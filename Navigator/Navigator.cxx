@@ -1891,17 +1891,17 @@ Navigator::ReportSuccessAcceptingRegistrationProcessing()
                  "ReportSuccessAcceptingRegistration called...\n");  
 
   // add the tool object to the image planes
-  m_AxialPlaneSpatialObject->RequestSetToolSpatialObject( m_ToolSpatialObject );
-  m_SagittalPlaneSpatialObject->RequestSetToolSpatialObject( 
-                                                          m_ToolSpatialObject );
-  m_CoronalPlaneSpatialObject->RequestSetToolSpatialObject( 
-                                                          m_ToolSpatialObject );
-
-  m_AxialPlaneSpatialObject2->RequestSetToolSpatialObject( m_ToolSpatialObject );
-  m_SagittalPlaneSpatialObject2->RequestSetToolSpatialObject( m_ToolSpatialObject );
-
-  m_CrossHair->RequestSetToolSpatialObject( m_ToolSpatialObject ); 
+  m_AxialPlaneSpatialObject->	RequestSetToolSpatialObject( m_ToolSpatialObject );
+  m_SagittalPlaneSpatialObject->RequestSetToolSpatialObject( m_ToolSpatialObject );
+  m_CoronalPlaneSpatialObject->	RequestSetToolSpatialObject( m_ToolSpatialObject );
+  m_CrossHair->					RequestSetToolSpatialObject( m_ToolSpatialObject ); 
        
+  if (m_flagSecondImage)   // to see validation of second view image
+  {
+	  m_AxialPlaneSpatialObject2->	 RequestSetToolSpatialObject( m_ToolSpatialObject );
+	  m_SagittalPlaneSpatialObject2->RequestSetToolSpatialObject( m_ToolSpatialObject );
+  }
+
   igstk::Transform identity;
   identity.SetToIdentity( igstk::TimeStamp::GetLongestPossibleTime() );
 
@@ -1913,54 +1913,53 @@ Navigator::ReportSuccessAcceptingRegistrationProcessing()
   //---===============================--//
   // setup axial tool projection
   m_AxialToolProjectionRepresentation = ToolProjectionRepresentationType::New();
-  m_AxialToolProjectionRepresentation->RequestSetToolProjectionObject( 
-                                                             m_ToolProjection );
-  m_AxialToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( 
-                                                    m_AxialPlaneSpatialObject );
+  m_AxialToolProjectionRepresentation->RequestSetToolProjectionObject( m_ToolProjection );
+  m_AxialToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( m_AxialPlaneSpatialObject );
   m_AxialToolProjectionRepresentation->SetColor( 1,1,0 );
 
   // setup sagittal tool projection
-  m_SagittalToolProjectionRepresentation = 
-                                        ToolProjectionRepresentationType::New();
-  m_SagittalToolProjectionRepresentation->RequestSetToolProjectionObject( 
-                                                             m_ToolProjection );
-  m_SagittalToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( 
-                                                 m_SagittalPlaneSpatialObject );
+  m_SagittalToolProjectionRepresentation = ToolProjectionRepresentationType::New();
+  m_SagittalToolProjectionRepresentation->RequestSetToolProjectionObject( m_ToolProjection );
+  m_SagittalToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( m_SagittalPlaneSpatialObject );
   m_SagittalToolProjectionRepresentation->SetColor( 1,1,0 );
 
   // setup coronal tool projection
-  m_CoronalToolProjectionRepresentation = 
-                                        ToolProjectionRepresentationType::New();
-  m_CoronalToolProjectionRepresentation->RequestSetToolProjectionObject( 
-                                                             m_ToolProjection );
-  m_CoronalToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( 
-                                                  m_CoronalPlaneSpatialObject );
+  m_CoronalToolProjectionRepresentation = ToolProjectionRepresentationType::New();
+  m_CoronalToolProjectionRepresentation->RequestSetToolProjectionObject( m_ToolProjection );
+  m_CoronalToolProjectionRepresentation->RequestSetReslicePlaneSpatialObject( m_CoronalPlaneSpatialObject );
   m_CoronalToolProjectionRepresentation->SetColor( 1,1,0 );
 
   // add tool representation to the 3D view
-  m_ViewerGroup->m_3DView->RequestAddObject( m_ToolRepresentation );
-
-  m_ViewerGroup->m_AxialView->RequestAddObject( 
-                                          m_AxialToolProjectionRepresentation );
-  
-  m_ViewerGroup->m_SagittalView->RequestAddObject( 
-                                     m_SagittalToolProjectionRepresentation );
-  m_ViewerGroup->m_CoronalView->RequestAddObject( 
-                                   m_CoronalToolProjectionRepresentation );
+  m_ViewerGroup->m_AxialView->   RequestAddObject( m_AxialToolProjectionRepresentation );
+  m_ViewerGroup->m_SagittalView->RequestAddObject( m_SagittalToolProjectionRepresentation );
+  m_ViewerGroup->m_CoronalView-> RequestAddObject( m_CoronalToolProjectionRepresentation );
+  m_ViewerGroup->m_3DView->      RequestAddObject( m_ToolRepresentation );
 
   // add tool representative to the three planes
-  m_ViewerGroup->m_AxialView->RequestAddObject( 
+  m_ViewerGroup->m_AxialView->   RequestAddObject( 
                                           m_ToolRepresentation->Copy() );
   m_ViewerGroup->m_SagittalView->RequestAddObject( 
                                           m_ToolRepresentation->Copy() );
-  m_ViewerGroup->m_CoronalView->RequestAddObject( 
+  m_ViewerGroup->m_CoronalView-> RequestAddObject( 
                                           m_ToolRepresentation->Copy() );
- 
+
   // reset the cameras in the different views
-  m_ViewerGroup->m_AxialView->RequestResetCamera();
+  m_ViewerGroup->m_AxialView->   RequestResetCamera();
   m_ViewerGroup->m_SagittalView->RequestResetCamera();
-  m_ViewerGroup->m_CoronalView->RequestResetCamera();
-  m_ViewerGroup->m_3DView->RequestResetCamera();
+  m_ViewerGroup->m_CoronalView-> RequestResetCamera();
+  m_ViewerGroup->m_3DView->      RequestResetCamera();
+
+  // check second image viewer validation and add tool representation to them
+  if (m_flagSecondImage)
+  {
+	  //add tool representative to the additional 2 planes
+	  m_ViewerGroup->new_AxialView->   RequestAddObject(m_ToolRepresentation->Copy());
+	  m_ViewerGroup->new_SagittalView->RequestAddObject(m_ToolRepresentation->Copy());
+
+	  //reset the cameras in the additional 2 planes
+	  m_ViewerGroup->new_AxialView->   RequestResetCamera();
+	  m_ViewerGroup->new_SagittalView->RequestResetCamera();
+  }
 
   this->DisableAll();
 
@@ -3483,15 +3482,16 @@ void Navigator::TrackerRegistrationProcessing()
   m_LandmarkRegistration -> RequestGetTransformFromTrackerToImage();
 
   
-
+  // to be continued here --------------//
+  /*
   igstk::NavigatorRegistrationBase::Pointer ICP_Trans;
   typedef igstk::ICPTransform  ICPType;
   ICP_Trans = ICPType::New();
   if (ICP_Trans -> Execute())
   {   
 	  m_ICPTransform = ICP_Trans->GetTransform();
-	  
   }
+  */
 
   if( lrtcb->GotTransform() )
   {

@@ -583,6 +583,7 @@ private:
   ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject;
   ReslicerPlaneType::Pointer                     m_CoronalPlaneSpatialObject;
 
+  /****  second view object (two views at bottom)    ***/
   ReslicerPlaneType::Pointer                     m_AxialPlaneSpatialObject2;     //qinshuo add
   ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject2;  //qinshuo add
   ImageRepresentationType2::Pointer               new_AxialPlaneRepresentation;     //qinshuo add
