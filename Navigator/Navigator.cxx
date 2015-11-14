@@ -2603,7 +2603,7 @@ void Navigator::RequestAcceptImageLoad()
     m_ImageSpatialObject = m_ImageObserver->GetImage();    
     this->ConnectImageRepresentation();
     this->ReadFiducials();    
-    this->RequestChangeSelectedFiducial();
+    //this->RequestChangeSelectedFiducial();
     m_StateMachine.PushInputBoolean( m_ImageReader->FileSuccessfullyRead(), 
                                      m_SuccessInput, m_FailureInput);
   }  
@@ -3096,12 +3096,13 @@ void Navigator::SetImagePickingProcessing()
 	    	m_CoronalPlaneSpatialObject->RequestSetCursorPosition( data );
 	    	m_CrossHair->RequestSetCursorPosition( data );
 	    	//---- qinshuo add ---//
+			//check second image status
 	    	if (m_flagSecondImage)
 	    	{
 	    		m_AxialPlaneSpatialObject2->RequestSetCursorPosition( data );
 	    		m_SagittalPlaneSpatialObject2->RequestSetCursorPosition( data );
 	    	}
-	    
+			//check overlay image status
 	    	if (m_flagOverlay)
 	    	{
 	    		if ( m_OverlaySpatialObject->IsInside( point ) )
@@ -3780,7 +3781,7 @@ void Navigator::ConnectImageRepresentation()
   m_CoronalPlaneRepresentation->RequestSetReslicePlaneSpatialObject( 
                                                   m_CoronalPlaneSpatialObject );
 
-  // create representationvolume(Sun adds)
+  // create representation volume(Sun adds)
   m_ImageRepresentation3D = VolumeRepresentationType::New();
   m_ImageRepresentation3D ->RequestSetImageSpatialObject( m_ImageSpatialObject );  //3D rendering
 
@@ -3838,7 +3839,7 @@ void Navigator::ConnectImageRepresentation()
   m_CrossHair = CrossHairType::New();
   m_CrossHair->RequestSetBoundingBoxProviderSpatialObject(m_ImageSpatialObject);
 
-  // Set initial crosshair possition
+  // Set initial crosschair position
   // This initialization is important, otherwise, images will not load properly
   // under debug mode
   CT_ImageSpatialObjectType::IndexType index;
@@ -3959,8 +3960,6 @@ void Navigator::ConnectImageRepresentation()
                                                 m_SagittalPlaneRepresentation );
   m_ViewerGroup->m_CoronalView->RequestAddObject( 
                                                  m_CoronalPlaneRepresentation );
-  // -- enable 3d reconstruction in this line --//
-  //m_ViewerGroup->m_3DView->RequestAddObject(m_ImageRepresentation3D);
 
 
   // add reslice plane representations to the 3D views
@@ -3972,6 +3971,9 @@ void Navigator::ConnectImageRepresentation()
 
   m_CoronalPlaneRepresentation2 = m_CoronalPlaneRepresentation->Copy();
   m_ViewerGroup->m_3DView->RequestAddObject( m_CoronalPlaneRepresentation2 );
+
+  // -- enable 3d reconstruction in this line --//
+  //m_ViewerGroup->m_3DView->RequestAddObject(m_ImageRepresentation3D);  //3D rendering
 
 
   // set parallel projection in the 2D views
@@ -4432,7 +4434,7 @@ void Navigator::AxialViewPickingCallback( const itk::EventObject & event)
     const TransformEventType * tmevent =
     dynamic_cast< const TransformEventType *>( & event );
 
-    // get the transform from the view to its parent (reslicer plane)
+    // get the transform from the view to its parent (reslice plane)
     igstk::CoordinateSystemTransformToResult transformCarrier = tmevent->Get();
     m_PickingTransform = transformCarrier.GetTransform();
 
