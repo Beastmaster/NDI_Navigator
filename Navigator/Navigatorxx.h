@@ -1,17 +1,17 @@
 /*=========================================================================
 
-  Program:				Surgical Navigation System
-  Organization:			RC-MIC (CUHK)
-  File Name:			Navigator.h
-  Language:				C++
-  Lasted Updated:       2015/11/12
-  Version:				2.0
-  CopyRight    Research Center of Medical Imaging Center 
-				(Chinese University of HongKong)   All Rights Reserved
-		Please be noted that: this program is knowledge property of 
-		RC-MIC(CUHK). You can contact the author or our office to 
-		access more information. This program is for research purpose 
-		and we take no responsibility for its consequences. 
+  Program:   Image Guided Surgery Software Toolkit
+  Module:    Navigator.h
+  Language:  C++
+  Date:      $Date$
+  Version:   $Revision$
+
+  Copyright (c) ISC  Insight Software Consortium.  All rights reserved.
+  See IGSTKCopyright.txt or http://www.igstk.org/copyright.htm for details.
+
+     This software is distributed WITHOUT ANY WARRANTY; without even
+     the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+     PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
 #ifndef __Navigator_h
@@ -32,11 +32,6 @@
 #include "igstkCTImageReader.h"
 #include "igstkCTImageSpatialObject.h"
 #include "igstkCTImageSpatialObjectRepresentation.h"
-
-#include "igstkMRImageReader.h"   //qinshuo add
-#include "igstkMRImageSpatialObject.h"    // qinshuo add
-#include "igstkMRImageSpatialObjectRepresentation.h" // qinshuo add
-
 #include "igstkImageSpatialObjectVolumeRepresentation.h"  //Sun adds
 #include "igstkImageSpatialObjectSurfaceRepresentation.h"  //Sun adds
 
@@ -83,20 +78,6 @@
 #include "igstkTrackerConfigurationFileReader.h"
 #include "igstkTrackerConfigurationXMLFileReaderBase.h"
 #include "igstkTransform.h"
-#include "igstkNiftiImageReader.h"
-
-
-//qinshuo add: file path
-#define ImagePath_DEF         "D:/QIN/DATA"
-#define OverlayPath_DEF       "D:/QIN/DATA"
-#define MeshPath_DEF          "D:/QIN/DATA"
-#define SecondImagePath_DEF   "D:/QIN/DATA/*.nii"
-#define VicraConfigurationFile_DEF			"D:/QIN/DATA/vicraConfiguration.xml"
-#define ToolSpatial_DEF						"D:/QIN/DATA/TrackerToolRepresentationMeshes/needletip.msh"
-#define Target_DEF							""
-
-
-
 
 class vtkImageMapToColors;
 class vtkPlaneSource;
@@ -106,115 +87,6 @@ class vtkImageShiftScale;
 class vtkImageResliceMapper;
 class vtkImageProperty;
 class vtkLookupTable;
-class my_MRImageReader;
-class com_DicomImageSpatialObject;
-class com_DicomImageReader;
-
-namespace igstk
-{
-/***   .nii file reader   **/
-	class my_MRImageReader:  public NiftiImageReader< MRImageSpatialObject >
-	{
-
-	public:
-
-	  /** Macro with standard traits declarations. */
-	  igstkStandardClassTraitsMacro( my_MRImageReader, 
-									 NiftiImageReader< MRImageSpatialObject > )
-
-	 /** Event type */
-     //	igstkLoadedTemplatedObjectEventMacro( ImageModifiedEvent, IGSTKEvent, MRImageSpatialObject);
-
-	  /** Declarations needed for the Logger */
-	  igstkLoggerMacro();
-
-	protected:
-
-	  my_MRImageReader( void ):m_StateMachine(this){};
-	  virtual ~my_MRImageReader( void ) {};
-
-	  /** check if the dicom data is from a "CT" modality */
-	  bool CheckModalityType(){};
-
-	  /** Print the object information in a stream. */
-	  void PrintSelf( std::ostream& os, itk::Indent indent ) const
-	  {
-		    Superclass::PrintSelf(os, indent);
-	  }; 
-
-	private:
-  
-	  /** These two methods must be declared and note be implemented
-	   *  in order to enforce the protocol of smart pointers. */
-		my_MRImageReader(const Self&);         //purposely not implemented
-		void operator=(const Self&);        //purposely not implemented
-	};
-
-
-/**   common spatial image object regardless of modiality  **/
-	class com_DicomImageSpatialObject : 
-		  public ImageSpatialObject< signed short, 3 >
-	{
-	public:
-	  /** Type of the superclass. 
-	   *  This must be declared first because the StandardClassTraitsMacro
-	   *  will otherwise get confused with the commas of the template */
-	  typedef ImageSpatialObject< signed short, 3>     SuperclassType;
-  
-	  /** Macro with standard traits declarations. */
-	  igstkStandardClassTraitsMacro( com_DicomImageSpatialObject, SuperclassType )
-
-	protected:
-
-	  com_DicomImageSpatialObject():m_StateMachine((Self *)this){}
-	  virtual ~com_DicomImageSpatialObject(){};
-
-	  /** Print the object information in a stream. */
-	  void PrintSelf( std::ostream& os, itk::Indent indent ) const {;} 
-
-	private:
- 
-	  /** These two methods must be declared and note be implemented
-	   *  in order to enforce the protocol of smart pointers. */
-	  com_DicomImageSpatialObject(const Self&);     //purposely not implemented
-	  void operator=(const Self&);           //purposely not implemented
-	};
-
-
-/**   common dicom image reader regardless of modiality  **/
-	class com_DicomImageReader:  public DICOMImageReader< CTImageSpatialObject >
-	{
-
-	public:
-
-	  /** Macro with standard traits declarations. */
-	  igstkStandardClassTraitsMacro( com_DicomImageReader, 
-									 DICOMImageReader< CTImageSpatialObject > )
-
-	protected:
-
-	  com_DicomImageReader( void ) : m_StateMachine(this){}
-	  virtual ~com_DicomImageReader( void ) {};
-	  /** Check if MRI dicom is being read */
-	  // the modification here is: no matter what the modality is, just read the image!
-	  bool CheckModalityType( DICOMInformationType modaltiy )
-	  {
-		  if( modaltiy != "MR" )			  return true;
-		  else								  return true;
-	  }
-	  /** Print the object information in a stream. */
-	  void PrintSelf( std::ostream& os, itk::Indent indent ) const {Superclass::PrintSelf(os, indent);}
-
-	private:
-  
-	  /** These two methods must be declared and note be implemented
-	   *  in order to enforce the protocol of smart pointers. */
-	  com_DicomImageReader(const Self&);         //purposely not implemented
-	  void operator =(const Self&);        //purposely not implemented
-	};
-}
-
-
 
 /** \class Navigator
 * 
@@ -237,18 +109,14 @@ public:
 
   /** typedef for image reader */
   typedef igstk::CTImageReader                        ImageReaderType;
-  typedef igstk::com_DicomImageReader				  DicomReaderType;  //qinshuo add: read dicom images regardless of it modilaty
-  typedef igstk::my_MRImageReader      				  MRImageReaderType;
 
   /** typedef for mesh readers */
   typedef igstk::MeshReader                           MeshReaderType;
   /** typedef for image spatial objects */
 //  typedef ImageReaderType::ImageSpatialObjectType     ImageSpatialObjectType
 
-  typedef igstk::MRImageSpatialObject                 MRI_ImageSpatialObjectType;
-  typedef igstk::CTImageSpatialObject                 CT_ImageSpatialObjectType;
-  typedef igstk::CTImageSpatialObject				  Dicom_ImageSpatialObjectType; //qinshuo add 
-
+//  typedef igstk::MRImageSpatialObject                 ImageSpatialObjectType;
+  typedef igstk::CTImageSpatialObject                 ImageSpatialObjectType;
 
   typedef igstk::MeshObject                           MeshObjectType;  //Sun adds
 
@@ -263,8 +131,8 @@ public:
   typedef igstk::CylinderObjectRepresentation        CylinderRepresentationType;
 
   /** typedef for an image voxel index and world coordinates */
-  typedef CT_ImageSpatialObjectType::IndexType           IndexType;
-  typedef CT_ImageSpatialObjectType::PointType           PointType;
+  typedef ImageSpatialObjectType::IndexType           IndexType;
+  typedef ImageSpatialObjectType::PointType           PointType;
   typedef MeshObjectType::PointType                   MeshPointType;  //sun adds
  
 
@@ -287,18 +155,15 @@ public:
   typedef igstk::MeshResliceObjectRepresentation  MeshResliceRepresentationType;
 
   /** image reslice representation */
-  typedef igstk::ImageSliceObjectRepresentationPlus< Dicom_ImageSpatialObjectType >
+  typedef igstk::ImageSliceObjectRepresentationPlus< ImageSpatialObjectType >
                                                          ImageRepresentationTypePlus;
-  typedef igstk::ImageSliceObjectRepresentation< CT_ImageSpatialObjectType >
+  typedef igstk::ImageSliceObjectRepresentation< ImageSpatialObjectType >
                                                          ImageRepresentationType;
-  typedef igstk::ImageSliceObjectRepresentation< MRI_ImageSpatialObjectType >
-														 ImageRepresentationType2;
-
  // typedef vtkSmartPointer<vtkImageActor>               ImageRepresentationType;  //New add
 
   /** typedef for ImageRepresentationVolumeType */
-  typedef igstk::ImageSpatialObjectVolumeRepresentation< CT_ImageSpatialObjectType >  VolumeRepresentationType; //Sun adds
-  typedef igstk::ImageSpatialObjectSurfaceRepresentation< CT_ImageSpatialObjectType >  SurfaceRepresentationType; //Sun adds
+  typedef igstk::ImageSpatialObjectVolumeRepresentation< ImageSpatialObjectType >  VolumeRepresentationType; //Sun adds
+  typedef igstk::ImageSpatialObjectSurfaceRepresentation< ImageSpatialObjectType >  SurfaceRepresentationType; //Sun adds
   
   /** typedef for landmark registration types */
   typedef igstk::Landmark3DRegistration                        RegistrationType;
@@ -318,9 +183,8 @@ public:
   virtual void RequestLoadImage();
   virtual void RequestCancelImageLoad();
   virtual void RequestAcceptImageLoad();
-  virtual void RequestLoadSecondImage();   //qinshuo add
   virtual void RequestLoadMesh();
-  virtual void RequestLoadOverlay();       //New adds
+  virtual void RequestLoadOverlay();  //New adds
   virtual void RequestLoadToolSpatialObject();
   virtual void RequestToggleSetImageFiducials();
   virtual void RequestStartSetTrackerFiducials();
@@ -408,17 +272,12 @@ public:
   /** Define observers for event communication */
  // igstkObserverObjectMacro( Image, igstk::MRImageReader::ImageModifiedEvent,
  //                                  igstk::MRImageSpatialObject );
+
   igstkObserverObjectMacro( Image, igstk::CTImageReader::ImageModifiedEvent,
                                    igstk::CTImageSpatialObject );
 
   igstkObserverObjectMacro( MeshObject, igstk::MeshReader::MeshModifiedEvent,
                                         igstk::MeshObject );
-  
-  igstkObserverObjectMacro( MRImage, igstk::my_MRImageReader::ImageModifiedEvent,   //qinshuo add
-										igstk::MRImageSpatialObject );
-
-  igstkObserverObjectMacro( DicomImage, igstk::com_DicomImageReader::ImageModifiedEvent,                //qinshuo add
-										igstk::CTImageSpatialObject );    // make the comm_dicom image to CT Image
 
   igstkObserverMacro( Registration, igstk::CoordinateSystemTransformToEvent,
                                     igstk::CoordinateSystemTransformToResult );
@@ -445,7 +304,6 @@ private:
   
   igstkDeclareStateMacro( Initial );
   igstkDeclareStateMacro( LoadingImage );
-  igstkDeclareStateMacro( LoadingSecondImage );// qinshuo add
   igstkDeclareStateMacro( ConfirmingImagePatientName );
   igstkDeclareStateMacro( ImageReady );
   igstkDeclareStateMacro( LoadingToolSpatialObject );
@@ -472,7 +330,6 @@ private:
   igstkDeclareInputMacro( Success );
   igstkDeclareInputMacro( Failure );
   igstkDeclareInputMacro( LoadImage );
-  igstkDeclareInputMacro( LoadSecondImage ); //qinshuo add
   igstkDeclareInputMacro( ConfirmImagePatientName );
   igstkDeclareInputMacro( LoadMesh );
   igstkDeclareInputMacro( LoadOverlay );//New adds
@@ -491,19 +348,13 @@ private:
   igstkDeclareInputMacro( DisconnectTracker );
 
 
-
   /** DICOM image reader */
   ImageReaderType::Pointer                              m_ImageReader;
-  DicomReaderType::Pointer                              m_ImageReader_overlay;  //modification: ImageReadType  ImageReaderType-->DicomReaderType
-
-
-  /** Nifti Image reader -- qinshuo add*/
-  MRImageReaderType::Pointer                             m_ImageReader2;
-  MRImageObserver::Pointer								m_ImageObserver2;
+  ImageReaderType::Pointer                              m_ImageReader1;
   
   /** DICOM image observers */
   ImageObserver::Pointer                                m_ImageObserver;
-  ImageObserver::Pointer                                m_ImageObserver_overlay;
+  ImageObserver::Pointer                                m_ImageObserver1;
   VTKImageObserver::Pointer                             m_VTKImageObserver;   //Sun adds
   vtkImageData                                          *m_ImageData;          //Sun adds
 
@@ -515,13 +366,10 @@ private:
   
   igstk::FiducialsPlan                                * m_Plan;
 
-  CT_ImageSpatialObjectType::PointType                     m_ImageCenter;
+  ImageSpatialObjectType::PointType                     m_ImageCenter;
 
-  bool													m_flagImage;  //main image flag bool
-  bool													m_flagOverlay; //overlay image flag
-  bool													m_flagSecondImage; // qinshuo add: check status of second image
-  bool													m_flagMesh;
-
+  bool													m_flagImage;  //flag bool
+   
   double                                                m_WindowLevel;
   double                                                m_WindowWidth;
 
@@ -537,10 +385,8 @@ private:
   itk::SmartPointer<ProgressCommandType>                m_ProgressCommand;  
   
   /** image spatial object */
-  CT_ImageSpatialObjectType::Pointer                       m_ImageSpatialObject;
-  Dicom_ImageSpatialObjectType::Pointer                       m_OverlaySpatialObject;   //qinshuo add: modification: CT_ImageSpatialObjectType --> DicomImageSpatialObjectType
-  MRI_ImageSpatialObjectType::Pointer					   m_ImageSpatialObject2;   //qinshuo add: second image object
-
+  ImageSpatialObjectType::Pointer                       m_ImageSpatialObject;
+  ImageSpatialObjectType::Pointer                       m_ImageSpatialObject1; 
 
   /** image spatial object */
   MeshObjectType::Pointer                       meshObject;  //Sun pick
@@ -565,9 +411,6 @@ private:
   CrossHairRepresentationType::Pointer        m_CoronalCrossHairRepresentation;
   CrossHairRepresentationType::Pointer        m_3DViewCrossHairRepresentation;
 
-  CrossHairRepresentationType::Pointer        new_Axial_Hair_Representation;//qinshuo add
-  CrossHairRepresentationType::Pointer        new_Sagital_Hair_Representation;//qinshuo add
-
   /** a vector of mesh spatial objects */
   std::vector< MeshType::Pointer >                      m_MeshVector;
 
@@ -581,12 +424,12 @@ private:
   ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject;
   ReslicerPlaneType::Pointer                     m_CoronalPlaneSpatialObject;
 
-  /****  second view object (two views at bottom)    ***/
-  ReslicerPlaneType::Pointer                     m_AxialPlaneSpatialObject2;     //qinshuo add
-  ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject2;  //qinshuo add
-  ImageRepresentationType2::Pointer               new_AxialPlaneRepresentation;     //qinshuo add
-  ImageRepresentationType2::Pointer               new_SagittalPlaneRepresentation;  //qinshuo add
-  
+  ReslicerPlaneType::Pointer                     m_AxialPlaneSpatialObject1;
+  ReslicerPlaneType::Pointer                     m_SagittalPlaneSpatialObject1;
+  ReslicerPlaneType::Pointer                     m_CoronalPlaneSpatialObject1;
+
+
+
   ImageRepresentationType::Pointer               m_AxialPlaneRepresentation;
   ImageRepresentationType::Pointer               m_SagittalPlaneRepresentation;
   ImageRepresentationType::Pointer               m_CoronalPlaneRepresentation;
@@ -695,8 +538,6 @@ private:
   void ReportInvalidRequestProcessing();
   void ReportSuccessImageLoadedProcessing();
   void ReportFailuredImageLoadedProcessing();
-  void ReportSuccessSecondImageLoadedProcessing();   //qinshuo adds
-  void ReportFailuredSecondImageLoadedProcessing();   //qinshuo add
   void ReportSuccessToolSpatialObjectLoadedProcessing();
   void ReportFailuredToolSpatialObjectLoadedProcessing();
   void ReportSuccessMeshLoadedProcessing();
@@ -725,7 +566,6 @@ private:
   void ReportSuccessStartTrackingProcessing();
   void ReportFailureStartTrackingProcessing();
   void LoadImageProcessing();
-  void LoadSecondImageProcessing();         //qinshuo add
   void ConfirmPatientNameProcessing();  
   void LoadMeshProcessing();
   void LoadOverlayProcessing();             //New adds
@@ -809,10 +649,10 @@ private:
   }
 
   inline 
-  CT_ImageSpatialObjectType::PointType 
+  ImageSpatialObjectType::PointType 
   TransformToPoint( igstk::Transform transform)
   {
-    CT_ImageSpatialObjectType::PointType point;
+    ImageSpatialObjectType::PointType point;
     for (unsigned int i=0; i<3; i++)
       {
       point[i] = transform.GetTranslation()[i];
@@ -861,7 +701,5 @@ private:
   MeshResliceRepresentationType::Pointer coronalContour;
 
 };
-
-
 
 #endif

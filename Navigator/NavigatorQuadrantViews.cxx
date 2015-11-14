@@ -347,7 +347,7 @@ void NavigatorQuadrantViews::RequestUpdateOverlays()
   m_AxialView->RequestAddAnnotation2D( m_AxialViewAnnotation );
   m_SagittalView->RequestAddAnnotation2D( m_SagittalViewAnnotation );
   m_CoronalView->RequestAddAnnotation2D( m_CoronalViewAnnotation );
-
+  //qinshuo add: update for additional 2 view panels
   new_AxialView->RequestAddAnnotation2D(new_AxialViewAnnotation);
   new_SagittalView->RequestAddAnnotation2D(new_SagittalViewAnnotation);
 }
