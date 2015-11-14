@@ -279,7 +279,7 @@ ImageSpatialObjectVolumeRepresentation< TImageSpatialObject >
   m_BoneTran = vtkTriangleFilter::New();
   m_BoneTran -> SetInput(m_BoneMesh);
   m_BoneSTLWriter = vtkSTLWriter::New();
-  m_BoneSTLWriter->SetFileName("D:/ToolKit/DATA/phantom/mesh.stl");
+  m_BoneSTLWriter->SetFileName(MESH_PATH);
   m_BoneSTLWriter->SetInput(m_BoneTran -> GetOutput());
   m_BoneSTLWriter->SetFileTypeToASCII();
   m_BoneSTLWriter->Write();
