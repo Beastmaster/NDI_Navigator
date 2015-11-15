@@ -807,7 +807,7 @@ Navigator::Navigator() : m_StateMachine(this)
                            SettingTrackerFiducials, ReportInvalidRequest );
   igstkAddTransitionMacro( SettingTrackerFiducials, LoadMesh, 
                            SettingTrackerFiducials, ReportInvalidRequest );
-   igstkAddTransitionMacro( SettingTrackerFiducials, LoadOverlay, 
+   igstkAddTransitionMacro(SettingTrackerFiducials, LoadOverlay, 
                            SettingTrackerFiducials, ReportInvalidRequest );  //New adds
   igstkAddTransitionMacro( SettingTrackerFiducials, LoadToolSpatialObject, 
                            SettingTrackerFiducials, ReportInvalidRequest );
@@ -2302,7 +2302,11 @@ void Navigator::LoadSecondImageProcessing()
 		"Navigator::LoadImageProcessing called...\n" )
 
 	const char*  fileName = 
-		fl_file_chooser("Select Second File (.nii)",SecondImagePath_DEF,NULL,0);
+		fl_file_chooser("Select Second File (.nii)",   //title
+						"*.nii",      //pattern
+						SecondImagePath_DEF,     //path
+						0);   //chooser type
+
    
 	if (fileName == NULL)
 	{
@@ -2685,12 +2689,10 @@ void Navigator::LoadMeshProcessing()
 
   igstkLogMacro2( m_Logger, DEBUG, 
                     "Navigator::LoadMeshProcessing called...\n" )
-//  const char*  fileName = 
-//           fl_file_chooser("Select the target mesh file","*.msh","");
 
 // Create the file chooser, and show it
     Fl_File_Chooser chooser(MeshPath_DEF,                        // directory
-                            "*.msh",                        // filter
+                            "*.msh",                        // filter (pattern)
                             Fl_File_Chooser::MULTI,     // chooser type
                             "Mesh Of Chooser");        // title
     chooser.show();
