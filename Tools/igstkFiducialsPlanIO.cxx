@@ -83,6 +83,13 @@ int FiducialsPlanIO::RequestWrite()
     std::string line;
     FiducialsPlan::PointType p;
 
+	//print writing time
+	time_t t = time(0);   // get time now
+	struct tm * now = localtime( & t );
+	planFile << "#" <<(now->tm_year + 1900) << '-' 
+		<< (now->tm_mon + 1) << '-'
+		<<  now->tm_mday
+		<< std::endl;
     planFile << "# Fiducial points\n"; // First line, description
     for ( unsigned int i=0; i<m_FiducialsPlan->m_FiducialPoints.size(); i++)
       {
