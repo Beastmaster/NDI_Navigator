@@ -1790,6 +1790,12 @@ Navigator::AcceptTrackerFiducialProcessing()
   m_SagittalFiducialRepresentationVector[n]->SetColor( 0.0, 1.0, 0.0 );
   m_CoronalFiducialRepresentationVector[n]->SetColor( 0.0, 1.0, 0.0 );
 
+  //confirm this point or not?
+  if (fl_ask("Do you accept the fiducial?") == 1)
+	  std::cout<<"accept the point"<<std::endl;
+  else
+	  return;
+
   if ( n < m )
   {
     m_FiducialsPointList->value(n+1);
@@ -1813,10 +1819,12 @@ Navigator::AcceptTrackerFiducialProcessing()
       numberOfAcceptedLandmarks++;
   }
 
-  if ( numberOfAcceptedLandmarks >= 3 )
+  if ( numberOfAcceptedLandmarks >= 4 )
   {
-    m_RegisterButton->label("Ready");     
-    m_RegisterButton->color(FL_GREEN);
+	//show a information box to notify users
+	fl_message("Selected Done /n Please press 'G' to continue...");
+	m_RegisterButton->label("Ready");     
+	m_RegisterButton->color(FL_GREEN);
   }
 }
 
@@ -3713,6 +3721,7 @@ void Navigator::ConnectImageRepresentation()
   m_Plan = new igstk::FiducialsPlan;
 
   // set up fiducual representations
+  // there is 4 fiducial pionts in total
   m_FiducialPointVector.resize(4);
   m_AxialFiducialRepresentationVector.resize(4);
   m_SagittalFiducialRepresentationVector.resize(4);
@@ -3756,7 +3765,7 @@ void Navigator::ConnectImageRepresentation()
   m_AxialPlaneSpatialObject->RequestSetReslicingMode( 
                                                 ReslicerPlaneType::Orthogonal );
   m_AxialPlaneSpatialObject->RequestSetOrientationType( 
-                                                     ReslicerPlaneType::Axial );
+                                                     ReslicerPlaneType::Axial);
   m_AxialPlaneSpatialObject->RequestSetBoundingBoxProviderSpatialObject( 
                                                          m_ImageSpatialObject );
 
@@ -3783,6 +3792,7 @@ void Navigator::ConnectImageRepresentation()
   m_AxialPlaneRepresentation = ImageRepresentationType::New();
   m_AxialPlaneRepresentation->RequestSetImageSpatialObject( 
                                                          m_ImageSpatialObject );
+  //m_AxialPlaneRepresentation->reque
   m_AxialPlaneRepresentation->RequestSetReslicePlaneSpatialObject( 
                                                     m_AxialPlaneSpatialObject );
   // create reslice plane representation for sagittal view
@@ -4722,6 +4732,21 @@ void Navigator::HandleKeyPressed (
     case 'g': 
         this->RequestEndSetTrackerFiducials();
         break;
+	/*	
+	case '0':
+		m_ViewerGroup->SetViewPattern(0);
+		break;
+	case '1':
+		m_ViewerGroup->SetViewPattern(1);
+		break;
+
+	case '2':
+		m_ViewerGroup->SetViewPattern(2);
+		break;
+
+	case '3':
+		m_ViewerGroup->SetViewPattern(3);
+		break;*/
 
     default:  
          return;

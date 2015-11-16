@@ -87,12 +87,12 @@
 
 
 //qinshuo add: file path
-#define ImagePath_DEF         "D:/QIN/DATA"
-#define OverlayPath_DEF       "D:/QIN/DATA"
-#define MeshPath_DEF          "D:/QIN/DATA"
-#define SecondImagePath_DEF   "D:/QIN/DATA"
-#define VicraConfigurationFile_DEF			"D:/QIN/DATA/vicraConfiguration.xml"
-#define ToolSpatial_DEF						"D:/QIN/DATA/TrackerToolRepresentationMeshes/needletip.msh"
+#define ImagePath_DEF         "./DATA"
+#define OverlayPath_DEF       "./DATA"
+#define MeshPath_DEF          "./DATA"
+#define SecondImagePath_DEF   "./DATA"
+#define VicraConfigurationFile_DEF			"./DATA/vicraConfiguration.xml"
+#define ToolSpatial_DEF						"./DATA/TrackerToolRepresentationMeshes/needletip.msh"
 #define Target_DEF							""
 
 

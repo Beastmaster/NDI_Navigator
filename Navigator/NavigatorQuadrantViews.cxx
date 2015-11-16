@@ -39,24 +39,33 @@ NavigatorQuadrantViews::NavigatorQuadrantViews(int X, int Y, int W, int H, const
 
   m_X = 150; // width of the control panel
   m_Y = 0;
-
+  m_org_X = X;  // widget origin
+  m_org_Y = Y;  // widget origin
   m_Width = parentGroup->w() - m_X ;
   m_Height = parentGroup->h(); 
 
   m_WW = (int) (m_Width-2*C)/2;
   m_HH = (int) (m_Height- (N*3) )/3;
+  m_HH_0 = (int) (m_Height- (N*2) )/2;
 
   // Create widgets
   typedef igstk::FLTKWidget   WidgetType;
 
+ 
+  m_AxialWidget    = new WidgetType(X, Y, m_WW, m_HH, "Display 0");
+  m_SagittalWidget = new WidgetType(X+m_WW+C, Y, m_WW, m_HH, "Display 1");
+  m_CoronalWidget  = new WidgetType(X, Y+m_HH+N, m_WW, m_HH, "Display 2");
+  m_3DWidget       = new WidgetType(X+m_WW+C, Y+m_HH+N, m_WW, m_HH+N, "Display 3");  
+  //--------add by qinshuo--------//
+  new_AxialWidget   = new WidgetType(X+C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add0");
+  new_SagittalWidget   = new WidgetType(X+m_WW+2*C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add1");
+  
+  /*
   m_AxialWidget    = new WidgetType(X+C, Y, m_WW, m_HH, "Display 0");
   m_SagittalWidget = new WidgetType(X+m_WW+2*C, Y, m_WW, m_HH, "Display 1");
   m_CoronalWidget  = new WidgetType(X+C, Y+m_HH+N, m_WW, m_HH, "Display 2");
-  m_3DWidget       = new WidgetType(X+m_WW+2*C, Y+m_HH+N, m_WW, m_HH, "Display 3");       
-  //--------add by qinshuo--------//
-  new_AxialWidget= new WidgetType(X+C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add0");
-  new_SagittalWidget   = new WidgetType(X+m_WW+2*C, Y+m_HH*2+N*2, m_WW, m_HH, "Display add1");
-  //--------add by qinshuo--------//
+  m_3DWidget       = new WidgetType(X+m_WW+2*C, Y+m_HH+N, m_WW, m_HH, "Display 3");*/
+
 
 
   // Create views
@@ -98,7 +107,7 @@ NavigatorQuadrantViews::NavigatorQuadrantViews(int X, int Y, int W, int H, const
   new_AxialViewAnnotation  = igstk::Annotation2D::New();
   //--------add by qinshuo--------//
 
-//  this->RequestUpdateOverlays();
+  this->RequestUpdateOverlays();
 
   // Create slider bars
   m_Sliders.clear();
@@ -277,6 +286,148 @@ void NavigatorQuadrantViews::RemoveObserver( unsigned long tag )
 void NavigatorQuadrantViews::RemoveAllObservers()
 {
   m_Reporter->RemoveAllObservers();
+}
+
+void NavigatorQuadrantViews::SetViewPattern(unsigned int sel)
+{
+	//delete view first
+	delete m_AxialWidget;
+	delete m_SagittalWidget;
+	delete m_CoronalWidget ;
+	delete m_3DWidget      ;
+
+	// Create widgets
+	typedef igstk::FLTKWidget   WidgetType;
+
+	switch (sel)
+	{
+	case 0:
+		m_AxialWidget   = new WidgetType(m_org_X+C, m_org_Y, m_WW, m_HH,"display 0");
+		m_SagittalWidget= new WidgetType(m_org_X+m_WW+2*C, m_org_Y, m_WW, m_HH,"display 0");
+		m_CoronalWidget = new WidgetType(m_org_X+C, m_org_Y+m_HH+N, m_WW, m_HH,"display 0");
+		m_3DWidget      = new WidgetType(m_org_X+m_WW+2*C, m_org_Y+m_HH+N, m_WW, m_HH,"display 0");       
+		//--------add by qinshuo--------//
+		new_AxialWidget      = new WidgetType(m_org_X+C, m_org_Y+m_HH*2+N*2, m_WW, m_HH,"display 0");
+		new_SagittalWidget   = new WidgetType(m_org_X+m_WW+2*C, m_org_Y+m_HH*2+N*2, m_WW, m_HH,"display 0");
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->hide();
+		break;
+	case 1: 
+		//1: largest window
+		m_AxialWidget   = new WidgetType(m_org_X+100, m_org_Y, m_Width-100, m_Height,"display 0");
+		//2: small window list
+		m_SagittalWidget= new WidgetType(m_org_X, m_org_Y,            100, m_Height/5,"display 0");
+		m_CoronalWidget = new WidgetType (m_org_X, m_org_Y+m_Height/5, 100, m_Height/5,"display 0");
+		m_3DWidget      = new WidgetType (m_org_X, m_org_Y+m_Height/5,     100, m_Height/5,"display 0");       
+		//--------add by qinshuo--------//
+		new_AxialWidget     = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5,"display 0");
+		new_SagittalWidget  = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5,"display 0");
+
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->hide();
+		break;
+
+	case 2:
+		//1: largest window
+		m_SagittalWidget  = new WidgetType(m_org_X+100, m_org_Y, m_Width-100, m_Height,"display 0");
+		//2: small window list
+		m_AxialWidget   = new WidgetType(m_org_X, m_org_Y,            100, m_Height/5,"display 0");
+		m_CoronalWidget = new WidgetType(m_org_X, m_org_Y+m_Height/5, 100, m_Height/5);
+		m_3DWidget      = new WidgetType(m_org_X, m_org_Y+m_Height/5,     100, m_Height/5);       
+		//--------add by qinshuo--------//
+		new_AxialWidget     = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+		new_SagittalWidget  = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+		
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->hide();
+		break;
+
+	case 3:
+		//1: largest window
+		m_CoronalWidget  = new WidgetType(m_org_X+100, m_org_Y, m_Width-100, m_Height);
+		//2: small window list
+		m_SagittalWidget= new WidgetType(m_org_X, m_org_Y,            100, m_Height/5);
+		m_AxialWidget   = new WidgetType(m_org_X, m_org_Y+m_Height/5, 100, m_Height/5);
+		m_3DWidget      = new WidgetType(m_org_X, m_org_Y+m_Height/5,     100, m_Height/5);       
+		//--------add by qinshuo--------//
+		new_AxialWidget     = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+		new_SagittalWidget  = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->hide();
+		break;
+
+	case 4:
+		//1: largest window
+		m_3DWidget  = new WidgetType(m_org_X+100, m_org_Y, m_Width-100, m_Height);
+		//2: small window list
+		m_SagittalWidget= new WidgetType(m_org_X, m_org_Y,            100, m_Height/5);
+		m_CoronalWidget = new WidgetType(m_org_X, m_org_Y+m_Height/5, 100, m_Height/5);
+		m_AxialWidget   = new WidgetType(m_org_X, m_org_Y+m_Height/5,     100, m_Height/5);       
+		//--------add by qinshuo--------//
+		new_AxialWidget     = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+		new_SagittalWidget  = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->hide();
+		break;
+	case 5:
+		//1: largest window
+		new_AxialWidget  = new WidgetType(m_org_X+100, m_org_Y, m_Width-100, m_Height);
+		//2: small window list
+		m_SagittalWidget = new WidgetType(m_org_X, m_org_Y,            100, m_Height/5);
+		m_CoronalWidget  = new WidgetType(m_org_X, m_org_Y+m_Height/5, 100, m_Height/5);
+		m_3DWidget       = new WidgetType(m_org_X, m_org_Y+m_Height/5,     100, m_Height/5);       
+		//--------add by qinshuo--------//
+		m_AxialWidget      = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+		new_SagittalWidget = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->hide();
+		break;
+	case 6:
+		//1: largest window
+		new_SagittalWidget = new WidgetType(m_org_X+100, m_org_Y, m_Width-100, m_Height);
+		//2: small window list
+		m_SagittalWidget= new WidgetType(m_org_X, m_org_Y,            100, m_Height/5);
+		m_CoronalWidget = new WidgetType(m_org_X, m_org_Y+m_Height/5, 100, m_Height/5);
+		m_3DWidget      = new WidgetType(m_org_X, m_org_Y+m_Height/5,     100, m_Height/5);       
+		//--------add by qinshuo--------//
+		new_AxialWidget   = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+		m_AxialWidget     = new WidgetType(m_org_X, m_org_Y+m_HH*2+N*2, 100, m_Height/5);
+
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->hide();
+		break;
+	default:
+		//get back to original size
+		m_AxialWidget   = new WidgetType(m_org_X+C, m_org_Y, m_WW, m_HH);
+		m_SagittalWidget= new WidgetType(m_org_X+m_WW+2*C, m_org_Y, m_WW, m_HH);
+		m_CoronalWidget = new WidgetType(m_org_X+C, m_org_Y+m_HH+N, m_WW, m_HH);
+		m_3DWidget      = new WidgetType(m_org_X+m_WW+2*C, m_org_Y+m_HH+N, m_WW, m_HH);       
+		//--------add by qinshuo--------//
+		new_AxialWidget     = new WidgetType(m_org_X+C, m_org_Y+m_HH*2+N*2, m_WW, m_HH);
+		new_SagittalWidget  = new WidgetType(m_org_X+m_WW+2*C, m_org_Y+m_HH*2+N*2, m_WW, m_HH);
+		//hide all sliders
+		for (auto xx = m_Sliders.begin();xx!=m_Sliders.end();++xx)
+			(*xx)->show();
+		break;
+	}
+	m_AxialWidget->RequestSetView( m_AxialView );
+	m_SagittalWidget->RequestSetView( m_SagittalView );
+	m_CoronalWidget->RequestSetView( m_CoronalView );
+	m_3DWidget->RequestSetView( m_3DView );
+	new_SagittalWidget->RequestSetView(new_SagittalView);
+	new_AxialWidget   ->RequestSetView(new_AxialView);
+
+	this->redraw();
 }
 
 int NavigatorQuadrantViews::handle(int event)

@@ -154,6 +154,9 @@ public:
   void RemoveObserver( unsigned long tag );
   void RemoveAllObservers();
 
+  void SetViewPattern(unsigned int	sel);
+
+
 protected:
 
   virtual void RequestResliceImage(void);
@@ -174,12 +177,17 @@ private:
   int handle_key(int event, KeyboardCommandType &keyCommand);
   int handle_mouse(int event, MouseCommandType &mouseCommand);
 
+  int m_org_X;
+  int m_org_Y;
+  int C;
+  int N;
   int m_Width;
   int m_Height;
   int m_X;
   int m_Y;
   int m_WW;
   int m_HH;
+  int m_HH_0;
 
   WindowLevelStructType m_wl;
 
