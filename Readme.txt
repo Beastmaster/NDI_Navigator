@@ -22,4 +22,24 @@ Usage:
 		e. tracker calibrate file (Calibrate1.xml)
 	4. You should install NDI tracker softwares to use the device driver
 	5. The configuration file path is defined and compiled to binary file
+	6. Put flolder 'DATA' to the executable directory. There are some
+	   important configure files.
 
+	   
+	   
+	   
+Modifications:
+    1. igstkImageSpatialObjectVolumeRepresentation.h/.hxx
+	       vtkSTLWriter path re-direct to ./
+	2. Navigator::AcceptTrackerFiducialProcessing()
+	       disable transform valid check (problem occur in laptop)
+	
+	3. disable Polaris Vicra bump detection. Or the tracker will not show.
+	
+	
+	
+	
+	
+	
+	
+	

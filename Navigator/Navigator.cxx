@@ -3518,7 +3518,7 @@ void Navigator::TrackerRegistrationProcessing()
   // So damned IGSTK, STATE MACHINE
   // God and Mr. Monster bless you who take over this project! ^_^
   // An other tips:
-  //      Please save the original verion of the project and don't touch it.
+  //      Please save the original version of the project and don't touch it.
   //      A good code compare tool will helps you!!!
   igstk::NavigatorRegistrationBase::Pointer ICP_Trans;
   typedef igstk::ICPTransform  ICPType;
