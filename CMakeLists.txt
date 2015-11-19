@@ -38,6 +38,7 @@ IF(IGSTK_USE_FLTK)
   SUBDIRS(
     Navigator
 	Navigator2
+	Navigator3
    )
 ENDIF(IGSTK_USE_FLTK)
 

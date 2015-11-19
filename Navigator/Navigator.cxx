@@ -1774,11 +1774,19 @@ Navigator::AcceptTrackerFiducialProcessing()
   m_TrackerTool->RequestComputeTransformTo( m_WorldReference );
 
   if ( !transformObserver->GotTransform() )
-    return;
-         //check that the transform is indeed valid
+  {
+	  igstkLogMacro2( m_Logger, DEBUG, "igstk::Navigator::"
+		  "transformObserver gettransforma failed\n");
+	  return;
+  }
+  //check that the transform is indeed valid
   igstk::Transform transform = transformObserver->GetTransform();
   if( !transform.IsValidNow() )
-    return;
+  {
+	  igstkLogMacro2( m_Logger, DEBUG, "igstk::Navigator::"
+		  "transform invalid now ...\n");
+	 // return;
+  }
 
   int n = m_FiducialsPointList->value();
   int m = m_FiducialsPointList->size();
