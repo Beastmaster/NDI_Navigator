@@ -1785,6 +1785,7 @@ Navigator::AcceptTrackerFiducialProcessing()
   {
 	  igstkLogMacro2( m_Logger, DEBUG, "igstk::Navigator::"
 		  "transform invalid now ...\n");
+	  //comment this line: this line does not work on laptop
 	 // return;
   }
 
